@@ -1,2 +1,4 @@
-create and enrich movie data with a locally running LLM
-and the OMDB and TMDB api.
+# helper script
+
+draws a visual network of relationships between movie characters
+using the vis library.
