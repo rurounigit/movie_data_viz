@@ -44,6 +44,10 @@ const nodeHighlightBorderWidth = 3; const nodeDefaultBorderWidth = 2;
 const baseNodeFontSizeForReset = 24;
 const baseEdgeFontSizeForReset = 21;
 
+// NEW: Image display constants
+const IMAGE_BASE_PATH = 'images/'; // Relative to the HTML file's location
+const DEFAULT_IMAGE_EXTENSION = '.jpg'; // Or .png, .gif, etc. Adjust as needed.
+
 let physicsStopTimeout;
 
 // Helper function to get contrasting text color
@@ -150,6 +154,7 @@ function processAllDataFromYaml() {
                     rawGroup: character.group || 'Unknown',
                     tooltipTextData: `${character.name || 'Unknown Character'}\n\n${character.description || 'No description available.'}`,
                     movieTitle: movieTitle,
+                    tmdb_person_id: character.tmdb_person_id || null // MODIFIED: Added tmdb_person_id
                 });
             });
         }
@@ -190,7 +195,8 @@ function populateMovieSelector() {
     selector.innerHTML = '';
 
     const movieTitles = [...new Set(allMoviesDataFromYaml.map(m => m.movie_title))].sort();
-    print("Populating movie selector with movie titles: " + movieTitles);
+    console.log("Populating movie selector with movie titles: " + movieTitles);
+
 
     if (movieTitles.length > 0) {
         movieTitles.forEach(title => {
@@ -308,18 +314,19 @@ function updateLegend() {
 }
 
 // --- Function to Update the Hover Info Panel ---
+// MODIFIED: This function is updated to include images
 function updateHoverInfoPanel(itemData, type) {
     const panel = document.getElementById('hoverInfoPanel');
     if (!panel) return;
 
-    panel.innerHTML = '';
+    panel.innerHTML = ''; // Clear previous content
 
     if (!itemData) {
         panel.innerHTML = '<p class="info-placeholder">Hover over a character or relationship for details.</p>';
         return;
     }
 
-    const title = document.createElement('h3');
+    const titleElement = document.createElement('h3'); // Renamed from 'title' to avoid conflict
     let description = '';
 
     if (itemData.rawTooltipData) {
@@ -335,18 +342,87 @@ function updateHoverInfoPanel(itemData, type) {
     }
 
     if (type === 'node' && itemData) {
-        title.textContent = 'Character Details';
-        panel.appendChild(title);
+        titleElement.textContent = 'Character Details';
+        panel.appendChild(titleElement);
 
         addInfoItem(panel, 'Name:', itemData.label);
         addInfoItem(panel, 'Group:', itemData.group);
-      /*addInfoItem(panel, 'Movie:', itemData.movieTitle);*/
-      /* addInfoItem(panel, 'Connections:', itemData.degree); */
-        if (description) addInfoItem(panel, 'Description:', description, true);
+
+        // START: Image display logic
+        if (itemData.tmdb_person_id) {
+            const imagePanelDiv = document.createElement('div');
+            // Apply styles via JS - consider moving to a CSS file for cleanliness
+            imagePanelDiv.style.display = 'flex'; // Initially flex, might be hidden by handlers
+            imagePanelDiv.style.justifyContent = 'space-around';
+            imagePanelDiv.style.alignItems = 'center';
+            imagePanelDiv.style.gap = '10px';
+            imagePanelDiv.style.marginTop = '10px';
+            imagePanelDiv.style.marginBottom = '10px';
+            imagePanelDiv.className = 'info-images-container'; // Assign class for CSS
+
+            const actorImgSrc = `${IMAGE_BASE_PATH}${itemData.tmdb_person_id}_1${DEFAULT_IMAGE_EXTENSION}`;
+            const charImgSrc = `${IMAGE_BASE_PATH}${itemData.tmdb_person_id}_character_1${DEFAULT_IMAGE_EXTENSION}`;
+
+            const actorImgElement = document.createElement('img');
+            actorImgElement.src = actorImgSrc;
+            actorImgElement.alt = `Actor for ${itemData.label || 'character'}`;
+            actorImgElement.style.maxWidth = '80px';
+            actorImgElement.style.maxHeight = '120px';
+            actorImgElement.style.objectFit = 'contain';
+            actorImgElement.style.borderRadius = '4px';
+            actorImgElement.style.backgroundColor = '#3a3f4b';
+            actorImgElement.className = 'info-panel-image'; // Assign class for CSS
+
+            const charImgElement = document.createElement('img');
+            charImgElement.src = charImgSrc;
+            charImgElement.alt = `Character: ${itemData.label || 'character'}`;
+            charImgElement.style.maxWidth = '80px';
+            charImgElement.style.maxHeight = '120px';
+            charImgElement.style.objectFit = 'contain';
+            charImgElement.style.borderRadius = '4px';
+            charImgElement.style.backgroundColor = '#3a3f4b';
+            charImgElement.className = 'info-panel-image';
+
+            const handleImageEvents = () => {
+                const allImages = Array.from(imagePanelDiv.getElementsByTagName('img'));
+                if (allImages.length === 0) { // Should not happen if tmdb_person_id is valid
+                    imagePanelDiv.style.display = 'none';
+                    return;
+                }
+                const allHidden = allImages.every(img => img.style.display === 'none');
+
+                if (allHidden) {
+                    imagePanelDiv.style.display = 'none';
+                } else {
+                    imagePanelDiv.style.display = 'flex';
+                }
+            };
+
+            actorImgElement.onload = () => { handleImageEvents(); };
+            actorImgElement.onerror = () => {
+                actorImgElement.style.display = 'none';
+                handleImageEvents();
+            };
+
+            charImgElement.onload = () => { handleImageEvents(); };
+            charImgElement.onerror = () => {
+                charImgElement.style.display = 'none';
+                handleImageEvents();
+            };
+
+            imagePanelDiv.appendChild(actorImgElement);
+            imagePanelDiv.appendChild(charImgElement);
+            panel.appendChild(imagePanelDiv);
+        }
+        // END: Image display logic
+
+        if (description) {
+            addInfoItem(panel, 'Description:', description, true);
+        }
 
     } else if (type === 'edge' && itemData) {
-        title.textContent = 'Relationship Details';
-        panel.appendChild(title);
+        titleElement.textContent = 'Relationship Details';
+        panel.appendChild(titleElement);
 
         const fromNode = allNodesDataSet.get(itemData.from);
         const toNode = allNodesDataSet.get(itemData.to);
@@ -355,14 +431,13 @@ function updateHoverInfoPanel(itemData, type) {
         addInfoItem(panel, 'From:', fromNode ? fromNode.label : `ID: ${itemData.from}`);
         addInfoItem(panel, 'To:', toNode ? toNode.label : `ID: ${itemData.to}`);
         addInfoItem(panel, 'Sentiment:', itemData.sentiment ? (itemData.sentiment.charAt(0).toUpperCase() + itemData.sentiment.slice(1)) : "N/A");
-       /* addInfoItem(panel, 'Strength:', itemData.strength); */
-       /* addInfoItem(panel, 'Movie:', itemData.movieTitle); */
         if (description) addInfoItem(panel, 'Description:', description, true);
 
     } else {
          panel.innerHTML = '<p class="info-placeholder">Hover over a character or relationship for details.</p>';
     }
 }
+
 
 function addInfoItem(panel, key, value, isBlockValue = false) {
     if (value === undefined || value === null || value === '') return;
@@ -393,8 +468,7 @@ function updateNetworkForMovie(selectedMovieTitle) {
     let currentNodesFromMaster = [];
     let currentEdgesFromMaster = [];
 
-    // The "All Movies" option is removed.
-    if (selectedMovieTitle && selectedMovieTitle !== "No movies available") { // Check if a valid movie is selected
+    if (selectedMovieTitle && selectedMovieTitle !== "No movies available") {
         currentNodesFromMaster = globallyUniqueNodesMasterList.filter(node => node.movieTitle === selectedMovieTitle);
         const currentNodeIds = new Set(currentNodesFromMaster.map(n => n.id));
         currentEdgesFromMaster = globallyUniqueEdgesMasterList.filter(edge =>
@@ -402,11 +476,10 @@ function updateNetworkForMovie(selectedMovieTitle) {
             currentNodeIds.has(edge.from) &&
             currentNodeIds.has(edge.to)
         );
-    } else { // Handle case of no valid movie selection (e.g., "No movies available")
+    } else {
         currentNodesFromMaster = [];
         currentEdgesFromMaster = [];
     }
-
 
     const nodeDegrees = {};
     currentNodesFromMaster.forEach(node => { nodeDegrees[node.id] = 0; });
@@ -425,9 +498,10 @@ function updateNetworkForMovie(selectedMovieTitle) {
             id: masterNode.id,
             label: masterNode.label,
             group: group,
-            title: createTooltipElement(masterNode.tooltipTextData, baseColor),
+            title: createTooltipElement(masterNode.tooltipTextData, baseColor), // Vis.js tooltip
             rawTooltipData: masterNode.tooltipTextData, // For hover info panel
             movieTitle: masterNode.movieTitle,          // For hover info panel
+            tmdb_person_id: masterNode.tmdb_person_id,  // MODIFIED: Added for hover info panel images
             size: size,
             shape: 'dot',
             color: {
@@ -456,7 +530,7 @@ function updateNetworkForMovie(selectedMovieTitle) {
             from: masterEdge.from,
             to: masterEdge.to,
             label: masterEdge.rawLabel,
-            title: createTooltipElement(masterEdge.tooltipTextData, masterEdge.rawBaseColor),
+            title: createTooltipElement(masterEdge.tooltipTextData, masterEdge.rawBaseColor), // Vis.js tooltip
             rawTooltipData: masterEdge.tooltipTextData, // For hover info panel
             movieTitle: masterEdge.movieTitle,          // For hover info panel
             width: getEdgeWidth(masterEdge.rawStrength),
@@ -725,8 +799,8 @@ async function main() {
             if (container) {
                 container.innerHTML = `<p style="color:#abb2bf; text-align:center; padding: 20px;">No movies available in the database.</p>`;
             }
-            updateLegend(); // Update legend (will show sentiment part)
-            updateHoverInfoPanel(null); // Ensure hover panel is also cleared or shows placeholder
+            updateLegend();
+            updateHoverInfoPanel(null);
         }
 
         console.log("Script fully loaded with YAML data and movie selector. Using HTML element titles for dynamic tooltip backgrounds.");
