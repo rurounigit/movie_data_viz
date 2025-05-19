@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Movie Character Relationship Network</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+  <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+  <style type="text/css">
+    html, body {
+      height: 100%; width: 100%; margin: 0; padding: 0; font-family: 'Roboto', sans-serif;
+      background-color: #282c34; color: #abb2bf; display: flex; flex-direction: column;
+      align-items: center; overflow-x: hidden;
+      overflow-y: auto;
+    }
+    .content-wrapper {
+        display: flex; flex-direction: column; align-items: center; padding: 10px;
+        width: 100%; box-sizing: border-box;
+    }
+    h1 {
+      color: #dedede; font-weight: 400; margin-bottom: 0px; text-align: center;
+      border-bottom: 1px solid #434343; padding-bottom: 10px; margin-top: 10px;
+    }
+    p.description {
+      font-size: 0.95em; max-width: 800px; text-align: center; line-height: 1.7;
+      margin-bottom: 15px; color: #dedede;
+    }
+     .controls {
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .controls label {
+      font-size: 1em;
+      color: #dedede;
+    }
+    .controls select {
+      padding: 8px 12px;
+      border-radius: 4px;
+      border: 1px solid #434343;
+      background-color: #2c313a;
+      color: #abb2bf;
+      font-family: 'Roboto', sans-serif;
+      font-size: 0.9em;
+      min-width: 200px;
+    }
+
+    /* Flex container for network and the sidebar (legend-and-info-wrapper) */
+    .network-area {
+        display: flex;
+        flex-direction: row; /* Network and sidebar sit side-by-side */
+        justify-content: center;
+        align-items: flex-start; /* Align items to the top */
+        width: 99%;
+        max-width: 1600px; /* Increased max-width to comfortably fit network and sidebar */
+        gap: 10px; /* Space between network and sidebar */
+    }
+
+    #mynetwork {
+        height: 75vh; /* Adjusted height slightly */
+        min-height: 550px; /* Adjusted min-height */
+        border: 1px solid #21252b;
+        background-color: #21252b;
+        border-radius: 6px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        position: relative;
+        flex-grow: 1; /* Network takes available space */
+        min-width: 800px; /* Important for flex items to shrink if needed */
+    }
+
+    /* Sidebar Wrapper for Legend and Info Panel */
+    .legend-and-info-wrapper {
+        display: flex;
+        flex-direction: row; /* Stack legend and info panel vertically */
+        gap: 10px;             /* Space between legend and info panel */
+        width: 600px;          /* Fixed width for the sidebar column */
+        max-height: 75vh;      /* Match network height */
+        flex-shrink: 0;        /* Prevent sidebar from shrinking */
+
+        /* overflow-y: auto; /* If combined content might exceed max-height and you want the wrapper to scroll */
+    }
+
+    #legend {
+        background-color: #2c313a;
+        padding: 10px;
+        border-radius: 6px;
+        border: 1px solid #21252b;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        color: #abb2bf;
+        font-size: 0.9em;
+        overflow-y: auto; /* Allow legend to scroll if its content is tall */
+        flex-basis:50%;
+        flex-shrink: 0;
+    }
+
+    #legend h3 {
+        margin-top: 0;
+        margin-bottom: 10px;
+        font-size: 1.1em;
+        color: #dedede;
+        border-bottom: 1px solid #434343;
+        padding-bottom: 5px;
+    }
+    .legend-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+    .legend-color-box {
+        width: 20px;
+        height: 20px;
+        margin-right: 10px;
+        border: 1px solid #545862;
+        border-radius: 3px;
+        flex-shrink: 0;
+    }
+    .legend-text {
+        flex-grow: 1;
+        word-break: break-word;
+    }
+
+    #hoverInfoPanel {
+        background-color: #2c313a;
+        padding: 10px;
+        border-radius: 6px;
+        border: 1px solid #21252b;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        color: #abb2bf;
+        font-size: 0.9em;
+        overflow-y: auto; /* Allow info panel to scroll if its content is tall */
+    }
+
+    #hoverInfoPanel h3 {
+        margin-top: 0;
+        margin-bottom: 10px;
+        font-size: 1.1em;
+        color: #dedede;
+        border-bottom: 1px solid #434343;
+        padding-bottom: 5px;
+    }
+    .info-item {
+        margin-bottom: 6px;
+        display: flex;
+        line-height: 1.4;
+    }
+    .info-key {
+        font-weight: bold;
+        color: #c8c8c8;
+        min-width: 85px; /* Adjusted for potentially longer keys like "Connections" */
+        flex-shrink: 0;
+        margin-right: 8px;
+    }
+    .info-value {
+        word-break: break-word;
+        flex-grow: 1;
+    }
+    .info-placeholder {
+        font-style: italic;
+        color: #7f848e;
+        text-align: center;
+        padding-top: 10px;
+    }
+
+    /* Navigation Buttons CSS */
+    .vis-network .vis-navigation div[role="button"] {
+        background-color: #3b4048 !important; border: 1px solid #282c34 !important;
+        border-radius: 4px !important; box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
+        transition: background-color 0.2s ease, transform 0.1s ease, border-color 0.2s ease;
+        color: transparent !important; width: 32px !important; height: 32px !important;
+        padding: 0 !important; display: flex !important; align-items: center !important;
+        justify-content: center !important;
+    }
+    .vis-network .vis-navigation div[role="button"]:hover {
+        background-color: #4f5b66 !important; border-color: #61afef !important;
+        transform: translateY(-1px);
+    }
+    .vis-network .vis-navigation div[role="button"]:active {
+        background-color: #424953 !important; transform: translateY(0px);
+    }
+    .vis-network .vis-navigation .vis-zoomIn, .vis-network .vis-navigation .vis-zoomOut,
+    .vis-network .vis-navigation .vis-zoomExtends, .vis-network .vis-navigation .vis-up,
+    .vis-network .vis-navigation .vis-down, .vis-network .vis-navigation .vis-left,
+    .vis-network .vis-navigation .vis-right {
+        filter: brightness(0) invert(1); background-size: 28px 28px !important;
+        background-position: center !important; background-repeat: no-repeat !important;
+    }
+    .vis-network .vis-navigation .vis-button.vis-zoomIn:hover,
+    .vis-network .vis-navigation .vis-button.vis-zoomOut:hover,
+    .vis-network .vis-navigation .vis-button.vis-zoomExtends:hover,
+    .vis-network .vis-navigation .vis-button.vis-up:hover,
+    .vis-network .vis-navigation .vis-button.vis-down:hover,
+    .vis-network .vis-navigation .vis-button.vis-left:hover,
+    .vis-network .vis-navigation .vis-button.vis-right:hover {
+        filter: brightness(0) invert(1) drop-shadow(0 0 1px #61afef);
+    }
+
+    /* CSS FOR STYLING VIS.JS TOOLTIPS (when title is an HTML element) */
+    div.vis-network div.vis-tooltip {
+      position: absolute !important;
+      padding: 0 !important; /* Remove padding as custom element has its own */
+      font-family: 'Roboto', sans-serif !important;
+      font-size: 12px !important;
+      line-height: 1.5 !important;
+      background-color: transparent !important; /* Make default tooltip background transparent */
+      border: 2px solid #545862 !important; /* Border for the tooltip container */
+      border-radius: 10px !important; /* Match custom element's border-radius */
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+      max-width: 350px !important;
+      text-align: left !important;
+      pointer-events: none !important;
+      z-index: 100 !important;
+      box-sizing: border-box !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="content-wrapper">
+    <h1>Movie Character Relationships</h1>
+    <p class="description">Hover over nodes (characters) for details and over edges (lines) for relationship specifics.</p>
+
+    <div class="controls">
+      <label for="movieSelector">Select Movie:</label>
+      <select id="movieSelector">
+        <!-- Options will be populated by JavaScript -->
+      </select>
+    </div>
+
+    <!-- WRAPPER FOR NETWORK AND SIDEBAR PANELS -->
+    <div class="network-area">
+        <div id="mynetwork"></div>
+
+        <!-- SIDEBAR WRAPPER FOR LEGEND AND INFO PANEL -->
+        <div class="legend-and-info-wrapper">
+            <div id="legend">
+                <!-- Legend will be populated by JavaScript -->
+                <p class="info-placeholder">Legend loading...</p> <!-- Placeholder for legend -->
+            </div>
+            <div id="hoverInfoPanel">
+                <p class="info-placeholder">Hover over a character or relationship for details.</p>
+            </div>
+        </div>
+    </div>
+  </div>
+
+  <script type="text/javascript" src="script.js"></script>
+</body>
+</html>
