@@ -1,7 +1,7 @@
 # Movie Character Relationship Network
 
 <p align="center">
-  <img src="https://via.placeholder.com/800x450?text=Screenshot+of+Network+Graph" alt="Screenshot of the Movie Character Relationship Network" style="border-radius: 8px;">
+  <img src="README.jpg" alt="Screenshot of the Movie Character Relationship Network" style="border-radius: 8px;">
   <br>
   <i>(Consider replacing this placeholder with an actual screenshot or GIF of your application)</i>
 </p>
