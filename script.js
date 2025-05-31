@@ -44,11 +44,15 @@ const nodeHighlightBorderWidth = 3; const nodeDefaultBorderWidth = 2;
 const baseNodeFontSizeForReset = 24;
 const baseEdgeFontSizeForReset = 21;
 
-// NEW: Image display constants
-const IMAGE_BASE_PATH = 'images/'; // Relative to the HTML file's location
-const DEFAULT_IMAGE_EXTENSION = '.jpg'; // Or .png, .gif, etc. Adjust as needed.
+// NEW: Image display constants - CORRECTED PATH AND EXTENSION HANDLING
+const IMAGE_BASE_PATH = 'output/character_images/'; // Relative to the project root
+const COMMON_IMAGE_EXTENSIONS = ['.jpg', '.png', '.jpeg', '.webp']; // Order of preference for loading
 
 let physicsStopTimeout;
+
+// NEW: Global variable for storing the original formatted plot HTML for the current movie
+let formattedOriginalPlotHTML = '<p class="info-placeholder">Plot summary will appear here once a movie is selected.</p>';
+
 
 // Helper function to get contrasting text color
 function getTextColorForBackground(hexColor) {
@@ -133,6 +137,16 @@ function generateAndCacheGroupColor(groupName) {
     return newColorHex;
 }
 
+// NEW: Client-side slugify function to match backend naming
+function slugify(text) {
+    if (!text) return "unknown";
+    text = String(text).toLowerCase().trim();
+    text = text.replace(/[^a-z0-9\s-]/g, ''); // Remove non-alphanumeric, non-space, non-hyphen chars
+    text = text.replace(/[\s_-]+/g, '-');     // Replace multiple spaces/hyphens/underscores with single hyphen
+    text = text.replace(/^-+|-+$/g, '');      // Remove leading/trailing hyphens
+    return text || "slug_error";
+}
+
 // Process all data from YAML into master lists
 function processAllDataFromYaml() {
     let globalNodeIdCounter = 0;
@@ -150,11 +164,12 @@ function processAllDataFromYaml() {
 
                 globallyUniqueNodesMasterList.push({
                     id: globalId,
-                    label: character.name,
+                    label: character.name, // This is the character.name
+                    actor_name: character.actor_name || 'Unknown Actor',
                     rawGroup: character.group || 'Unknown',
-                    tooltipTextData: `${character.name || 'Unknown Character'}\n\n${character.description || 'No description available.'}`,
+                    tooltipTextData: `${character.name || 'Unknown Character'}\n(Played by: ${character.actor_name || 'Unknown Actor'})\n\n${character.description || 'No description available.'}`,
                     movieTitle: movieTitle,
-                    tmdb_person_id: character.tmdb_person_id || null // MODIFIED: Added tmdb_person_id
+                    tmdb_person_id: character.tmdb_person_id || null
                 });
             });
         }
@@ -177,7 +192,7 @@ function processAllDataFromYaml() {
                         rawStrength: rel.strength || 1,
                         tooltipTextData: `${rel.type || 'Relationship'}: ${rel.source} & ${rel.target}\n\n${rel.description || 'No specific details.'}`,
                         rawBaseColor: sentimentColors[rel.sentiment] || sentimentColors.neutral,
-                        rawArrows: { to: { enabled: false } },
+                        rawArrows: { to: { enabled: false } }, // Directed field removed, so always false for rendering.
                         rawSentiment: rel.sentiment || 'neutral',
                         movieTitle: movieTitle,
                     });
@@ -246,7 +261,7 @@ function updateLegend() {
     const legendContainer = document.getElementById('legend');
     if (!legendContainer) return;
 
-    legendContainer.innerHTML = '';
+    legendContainer.innerHTML = ''; // Clear previous content, including any placeholder
 
     const groupsTitle = document.createElement('h3');
     groupsTitle.textContent = 'Character Groups';
@@ -258,28 +273,36 @@ function updateLegend() {
             currentGroupsInView.add(node.group);
         });
     }
+     // If no nodes, show placeholder, otherwise proceed
+    if (currentGroupsInView.size === 0 && allNodesDataSet.size() === 0) {
+        const placeholder = document.createElement('p');
+        placeholder.className = 'info-placeholder';
+        placeholder.textContent = 'No character groups to display.';
+        legendContainer.appendChild(placeholder);
+    } else {
+        const sortedGroupNames = Object.keys(generatedGroupColorsCache)
+            .filter(groupName => currentGroupsInView.has(groupName))
+            .sort();
 
-    const sortedGroupNames = Object.keys(generatedGroupColorsCache)
-        .filter(groupName => currentGroupsInView.has(groupName))
-        .sort();
+        sortedGroupNames.forEach(groupName => {
+            const color = generatedGroupColorsCache[groupName];
+            const legendItem = document.createElement('div');
+            legendItem.className = 'legend-item';
 
-    sortedGroupNames.forEach(groupName => {
-        const color = generatedGroupColorsCache[groupName];
-        const legendItem = document.createElement('div');
-        legendItem.className = 'legend-item';
+            const colorBox = document.createElement('div');
+            colorBox.className = 'legend-color-box';
+            colorBox.style.backgroundColor = color;
 
-        const colorBox = document.createElement('div');
-        colorBox.className = 'legend-color-box';
-        colorBox.style.backgroundColor = color;
+            const text = document.createElement('span');
+            text.className = 'legend-text';
+            text.textContent = groupName;
 
-        const text = document.createElement('span');
-        text.className = 'legend-text';
-        text.textContent = groupName;
+            legendItem.appendChild(colorBox);
+            legendItem.appendChild(text);
+            legendContainer.appendChild(legendItem);
+        });
+    }
 
-        legendItem.appendChild(colorBox);
-        legendItem.appendChild(text);
-        legendContainer.appendChild(legendItem);
-    });
 
     const sentimentsTitle = document.createElement('h3');
     sentimentsTitle.style.marginTop = '15px';
@@ -287,135 +310,213 @@ function updateLegend() {
     legendContainer.appendChild(sentimentsTitle);
 
     const sentimentOrder = ['positive', 'negative', 'complicated', 'neutral'];
-    const sortedSentimentKeys = sentimentOrder.filter(key => sentimentColors.hasOwnProperty(key));
-    Object.keys(sentimentColors).forEach(key => {
-        if (!sortedSentimentKeys.includes(key)) {
-            sortedSentimentKeys.push(key);
-        }
-    });
+    const currentSentimentsInView = new Set();
+     if (allEdgesDataSet) {
+        allEdgesDataSet.get({ filter: edge => !edge.hidden }).forEach(edge => {
+            if (edge.sentiment) currentSentimentsInView.add(edge.sentiment);
+        });
+    }
 
-    sortedSentimentKeys.forEach(sentimentName => {
-        const color = sentimentColors[sentimentName];
-        const legendItem = document.createElement('div');
-        legendItem.className = 'legend-item';
+    if (currentSentimentsInView.size === 0 && allEdgesDataSet.get({ filter: edge => !edge.hidden }).length === 0) {
+        const placeholder = document.createElement('p');
+        placeholder.className = 'info-placeholder';
+        placeholder.textContent = 'No sentiments to display.';
+        legendContainer.appendChild(placeholder);
+    } else {
+        const sortedSentimentKeys = sentimentOrder.filter(key => sentimentColors.hasOwnProperty(key) && currentSentimentsInView.has(key));
+        // Add any other sentiments present in data but not in predefined order
+        currentSentimentsInView.forEach(sentimentName => {
+            if (!sortedSentimentKeys.includes(sentimentName) && sentimentColors.hasOwnProperty(sentimentName)) {
+                 sortedSentimentKeys.push(sentimentName);
+            }
+        });
 
-        const colorBox = document.createElement('div');
-        colorBox.className = 'legend-color-box';
-        colorBox.style.backgroundColor = color;
 
-        const text = document.createElement('span');
-        text.className = 'legend-text';
-        text.textContent = sentimentName.charAt(0).toUpperCase() + sentimentName.slice(1);
+        sortedSentimentKeys.forEach(sentimentName => {
+            const color = sentimentColors[sentimentName];
+            const legendItem = document.createElement('div');
+            legendItem.className = 'legend-item';
 
-        legendItem.appendChild(colorBox);
-        legendItem.appendChild(text);
-        legendContainer.appendChild(legendItem);
-    });
+            const colorBox = document.createElement('div');
+            colorBox.className = 'legend-color-box';
+            colorBox.style.backgroundColor = color;
+
+            const text = document.createElement('span');
+            text.className = 'legend-text';
+            text.textContent = sentimentName.charAt(0).toUpperCase() + sentimentName.slice(1);
+
+            legendItem.appendChild(colorBox);
+            legendItem.appendChild(text);
+            legendContainer.appendChild(legendItem);
+        });
+    }
 }
 
 // --- Function to Update the Hover Info Panel ---
-// MODIFIED: This function is updated to include images
 function updateHoverInfoPanel(itemData, type) {
     const panel = document.getElementById('hoverInfoPanel');
     if (!panel) return;
 
-    panel.innerHTML = ''; // Clear previous content
+    panel.innerHTML = '';
 
     if (!itemData) {
         panel.innerHTML = '<p class="info-placeholder">Hover over a character or relationship for details.</p>';
         return;
     }
 
-    const titleElement = document.createElement('h3'); // Renamed from 'title' to avoid conflict
+    const titleElement = document.createElement('h3');
     let description = '';
 
     if (itemData.rawTooltipData) {
         const parts = itemData.rawTooltipData.split('\n\n');
         if (parts.length > 1) {
             description = parts.slice(1).join('\n\n').trim();
-        } else if (parts.length === 1 && itemData.label && !parts[0].toLowerCase().includes(itemData.label.toLowerCase())) {
-            description = parts[0].trim();
+            // This specific check might need adjustment based on how the tooltipTextData is generated.
+            // If the description part strictly starts with "(Played by:", remove that line.
+            // Otherwise, keep the full description.
+            if (description.startsWith("(Played by:")) {
+                const firstNewLineIndex = description.indexOf('\n');
+                if (firstNewLineIndex !== -1) {
+                    description = description.substring(firstNewLineIndex + 1).trim();
+                } else {
+                    description = ''; // If "(Played by:" is the only content, clear it.
+                }
+            }
         }
-         if (description === 'No description available.' || description === 'No specific details.') {
+        if (description === 'No description available.' || description === 'No specific details.') {
             description = '';
         }
     }
+
 
     if (type === 'node' && itemData) {
         titleElement.textContent = 'Character Details';
         panel.appendChild(titleElement);
 
         addInfoItem(panel, 'Name:', itemData.label);
-        addInfoItem(panel, 'Group:', itemData.group);
+        addInfoItem(panel, 'Actor:', itemData.actor_name);
 
-        // START: Image display logic
         if (itemData.tmdb_person_id) {
             const imagePanelDiv = document.createElement('div');
-            // Apply styles via JS - consider moving to a CSS file for cleanliness
-            imagePanelDiv.style.display = 'flex'; // Initially flex, might be hidden by handlers
+            imagePanelDiv.style.display = 'flex';
             imagePanelDiv.style.justifyContent = 'space-around';
             imagePanelDiv.style.alignItems = 'center';
             imagePanelDiv.style.gap = '10px';
             imagePanelDiv.style.marginTop = '10px';
             imagePanelDiv.style.marginBottom = '10px';
-            imagePanelDiv.className = 'info-images-container'; // Assign class for CSS
+            imagePanelDiv.className = 'info-images-container';
 
-            const actorImgSrc = `${IMAGE_BASE_PATH}${itemData.tmdb_person_id}_1${DEFAULT_IMAGE_EXTENSION}`;
-            const charImgSrc = `${IMAGE_BASE_PATH}${itemData.tmdb_person_id}_character_1${DEFAULT_IMAGE_EXTENSION}`;
-
+            // Image elements
             const actorImgElement = document.createElement('img');
-            actorImgElement.src = actorImgSrc;
-            actorImgElement.alt = `Actor for ${itemData.label || 'character'}`;
+            actorImgElement.alt = `Actor: ${itemData.actor_name || 'N/A'}`;
             actorImgElement.style.maxWidth = '80px';
             actorImgElement.style.maxHeight = '120px';
             actorImgElement.style.objectFit = 'contain';
             actorImgElement.style.borderRadius = '4px';
             actorImgElement.style.backgroundColor = '#3a3f4b';
-            actorImgElement.className = 'info-panel-image'; // Assign class for CSS
+            actorImgElement.className = 'info-panel-image';
+            actorImgElement.style.display = 'none'; // Hide until loaded/attempted
 
             const charImgElement = document.createElement('img');
-            charImgElement.src = charImgSrc;
-            charImgElement.alt = `Character: ${itemData.label || 'character'}`;
+            charImgElement.alt = `Character: ${itemData.label || 'N/A'}`;
             charImgElement.style.maxWidth = '80px';
             charImgElement.style.maxHeight = '120px';
             charImgElement.style.objectFit = 'contain';
             charImgElement.style.borderRadius = '4px';
             charImgElement.style.backgroundColor = '#3a3f4b';
             charImgElement.className = 'info-panel-image';
-
-            const handleImageEvents = () => {
-                const allImages = Array.from(imagePanelDiv.getElementsByTagName('img'));
-                if (allImages.length === 0) { // Should not happen if tmdb_person_id is valid
-                    imagePanelDiv.style.display = 'none';
-                    return;
-                }
-                const allHidden = allImages.every(img => img.style.display === 'none');
-
-                if (allHidden) {
-                    imagePanelDiv.style.display = 'none';
-                } else {
-                    imagePanelDiv.style.display = 'flex';
-                }
-            };
-
-            actorImgElement.onload = () => { handleImageEvents(); };
-            actorImgElement.onerror = () => {
-                actorImgElement.style.display = 'none';
-                handleImageEvents();
-            };
-
-            charImgElement.onload = () => { handleImageEvents(); };
-            charImgElement.onerror = () => {
-                charImgElement.style.display = 'none';
-                handleImageEvents();
-            };
+            charImgElement.style.display = 'none'; // Hide until loaded/attempted
 
             imagePanelDiv.appendChild(actorImgElement);
             imagePanelDiv.appendChild(charImgElement);
-            panel.appendChild(imagePanelDiv);
-        }
-        // END: Image display logic
 
+
+            let actorImageLoaded = false;
+            let characterImageLoaded = false;
+
+            // Function to attempt loading image with multiple extensions
+            const tryLoadImageWithExtensions = (imgElement, filenamePrefix, extensions, callback) => {
+                let currentExtensionIndex = 0;
+                const attemptLoad = () => {
+                    if (currentExtensionIndex < extensions.length) {
+                        const testSrc = `${IMAGE_BASE_PATH}${filenamePrefix}${extensions[currentExtensionIndex]}`;
+                        imgElement.src = testSrc; // Set src to trigger load/error
+                        imgElement.onload = () => {
+                            imgElement.style.display = 'block'; // Show if loaded
+                            callback(true); // Indicate success
+                        };
+                        imgElement.onerror = () => {
+                            currentExtensionIndex++;
+                            attemptLoad(); // Try next extension
+                        };
+                    } else {
+                        // All extensions tried, image not found
+                        imgElement.style.display = 'none'; // Ensure hidden
+                        callback(false); // Indicate failure
+                    }
+                };
+                attemptLoad();
+            };
+
+            // Trigger loading for Actor Image
+            if (itemData.tmdb_person_id) {
+                const actorFilename = itemData.tmdb_person_id; // Actor image is just ID
+                tryLoadImageWithExtensions(actorImgElement, actorFilename, COMMON_IMAGE_EXTENSIONS, (success) => {
+                    actorImageLoaded = success;
+                    // Only update panel visibility once both types of images have finished their load attempts
+                    if ((!itemData.label || characterImgElement.src) || !itemData.tmdb_person_id) { // Character image already attempted or not applicable
+                        if (actorImageLoaded || characterImageLoaded) {
+                            imagePanelDiv.style.display = 'flex';
+                        } else {
+                            imagePanelDiv.style.display = 'none';
+                        }
+                    }
+                });
+            } else {
+                actorImgElement.style.display = 'none'; // No TMDB ID, so no actor image
+            }
+
+            // Trigger loading for Character Image
+            if (itemData.tmdb_person_id && itemData.label) {
+                const charFilename = `${itemData.tmdb_person_id}_char_${slugify(itemData.label)}_1`; // _1 for the first image
+                tryLoadImageWithExtensions(charImgElement, charFilename, COMMON_IMAGE_EXTENSIONS, (success) => {
+                    characterImageLoaded = success;
+                    // Only update panel visibility once both types of images have finished their load attempts
+                    if ((!itemData.tmdb_person_id || actorImgElement.src) || !itemData.label) { // Actor image already attempted or not applicable
+                        if (actorImageLoaded || characterImageLoaded) {
+                            imagePanelDiv.style.display = 'flex';
+                        } else {
+                            imagePanelDiv.style.display = 'none';
+                        }
+                    }
+                });
+            } else if (itemData.label) { // No TMDB ID, but character name for fallback search
+                const charFilename = `${slugify(itemData.label)}_char_unknown_id_1`;
+                tryLoadImageWithExtensions(charImgElement, charFilename, COMMON_IMAGE_EXTENSIONS, (success) => {
+                    characterImageLoaded = success;
+                    if ((!itemData.tmdb_person_id || actorImgElement.src) || !itemData.label) {
+                        if (actorImageLoaded || characterImageLoaded) {
+                            imagePanelDiv.style.display = 'flex';
+                        } else {
+                            imagePanelDiv.style.display = 'none';
+                        }
+                    }
+                });
+            } else {
+                 charImgElement.style.display = 'none'; // No character name, so no character image
+            }
+
+            panel.appendChild(imagePanelDiv); // Append container
+            // Initial visibility based on what's available
+            if ((itemData.tmdb_person_id && itemData.label) || (itemData.tmdb_person_id && !itemData.label) || (!itemData.tmdb_person_id && itemData.label)) {
+                 imagePanelDiv.style.display = 'flex'; // Assume flex initially, let callbacks hide if nothing loads
+            } else {
+                 imagePanelDiv.style.display = 'none'; // No IDs or names, so no images to try
+            }
+
+        }
+
+        addInfoItem(panel, 'Group:', itemData.group);
         if (description) {
             addInfoItem(panel, 'Description:', description, true);
         }
@@ -461,25 +562,101 @@ function addInfoItem(panel, key, value, isBlockValue = false) {
     panel.appendChild(itemDiv);
 }
 
+// NEW: Helper function to escape special characters for regex
+function escapeRegExp(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+}
+
+// NEW: Function to display plot summary and manage its title
+function displayPlotInPanel(htmlContentForPlotArea) {
+    const plotPanel = document.getElementById('plotSummaryPanel');
+    if (!plotPanel) return;
+
+    let titleElement = plotPanel.querySelector('h3.plot-title');
+    if (!titleElement) {
+        titleElement = document.createElement('h3');
+        titleElement.className = 'plot-title'; // Added class for specific selection
+        titleElement.textContent = 'Plot Summary';
+        // Style H3 consistently with other panels
+        titleElement.style.marginTop = '0';
+        titleElement.style.marginBottom = '10px';
+        titleElement.style.fontSize = '1.1em';
+        titleElement.style.color = '#dedede';
+        titleElement.style.borderBottom = '1px solid #434343';
+        titleElement.style.paddingBottom = '5px';
+        plotPanel.insertBefore(titleElement, plotPanel.firstChild);
+    }
+
+    let contentDiv = plotPanel.querySelector('.plot-content-area');
+    if (!contentDiv) {
+        contentDiv = document.createElement('div');
+        contentDiv.className = 'plot-content-area';
+        plotPanel.appendChild(contentDiv); // Append after the title
+    }
+    contentDiv.innerHTML = htmlContentForPlotArea;
+}
+
+// NEW: Function to highlight character name in the plot
+function highlightCharacterInPlot(characterName) {
+    if (!formattedOriginalPlotHTML || !characterName) {
+        displayPlotInPanel(formattedOriginalPlotHTML); // Display original if no name or no base plot
+        return;
+    }
+    const escapedName = escapeRegExp(characterName);
+    // Case-sensitive global replacement of the exact character name string
+    const regex = new RegExp(escapedName, 'g');
+    const highlightedHTML = formattedOriginalPlotHTML.replace(regex,
+        match => `<span class="highlighted-character">${match}</span>`
+    );
+    displayPlotInPanel(highlightedHTML);
+}
+
+
 // Update the Vis.js network based on selected movie
 function updateNetworkForMovie(selectedMovieTitle) {
     console.log(`Updating network for: ${selectedMovieTitle}`);
 
     let currentNodesFromMaster = [];
     let currentEdgesFromMaster = [];
+    const selectedMovieData = allMoviesDataFromYaml.find(movie => movie.movie_title === selectedMovieTitle);
 
     if (selectedMovieTitle && selectedMovieTitle !== "No movies available") {
-        currentNodesFromMaster = globallyUniqueNodesMasterList.filter(node => node.movieTitle === selectedMovieTitle);
-        const currentNodeIds = new Set(currentNodesFromMaster.map(n => n.id));
-        currentEdgesFromMaster = globallyUniqueEdgesMasterList.filter(edge =>
-            edge.movieTitle === selectedMovieTitle &&
-            currentNodeIds.has(edge.from) &&
-            currentNodeIds.has(edge.to)
-        );
-    } else {
+        if (selectedMovieData) {
+            currentNodesFromMaster = globallyUniqueNodesMasterList.filter(node => node.movieTitle === selectedMovieTitle);
+            const currentNodeIds = new Set(currentNodesFromMaster.map(n => n.id));
+            currentEdgesFromMaster = globallyUniqueEdgesMasterList.filter(edge =>
+                edge.movieTitle === selectedMovieTitle &&
+                currentNodeIds.has(edge.from) &&
+                currentNodeIds.has(edge.to)
+            );
+
+            if (selectedMovieData.plot_with_character_constraints_and_relations) {
+                const rawPlotText = selectedMovieData.plot_with_character_constraints_and_relations;
+                // Escape HTML special characters and convert newlines for display
+                formattedOriginalPlotHTML = rawPlotText
+                    .replace(/&/g, "&") // Must be first, convert & before others
+                    .replace(/</g, "<")
+                    .replace(/>/g, ">")
+                    .replace(/\n/g, "<br>");
+            } else {
+                formattedOriginalPlotHTML = '<p class="info-placeholder">Plot summary not available for this movie.</p>';
+            }
+        } else { // Movie title selected, but no data found in allMoviesDataFromYaml
+            currentNodesFromMaster = [];
+            currentEdgesFromMaster = [];
+            formattedOriginalPlotHTML = `<p class="info-placeholder" style="color: #ffcc00;">Plot summary not available: Data for "${selectedMovieTitle}" could not be loaded.</p>`;
+            console.warn(`Data for movie "${selectedMovieTitle}" not found in allMoviesDataFromYaml.`);
+        }
+    } else { // No movie selected or "No movies available" state from selector
         currentNodesFromMaster = [];
         currentEdgesFromMaster = [];
+        if (selectedMovieTitle === "No movies available") {
+            formattedOriginalPlotHTML = '<p class="info-placeholder">No plot summary as no movies are available in the database.</p>';
+        } else { // Catch-all for empty/invalid selection
+            formattedOriginalPlotHTML = '<p class="info-placeholder">Select a movie to see the plot summary.</p>';
+        }
     }
+    displayPlotInPanel(formattedOriginalPlotHTML); // Update the plot panel content
 
     const nodeDegrees = {};
     currentNodesFromMaster.forEach(node => { nodeDegrees[node.id] = 0; });
@@ -498,10 +675,11 @@ function updateNetworkForMovie(selectedMovieTitle) {
             id: masterNode.id,
             label: masterNode.label,
             group: group,
-            title: createTooltipElement(masterNode.tooltipTextData, baseColor), // Vis.js tooltip
-            rawTooltipData: masterNode.tooltipTextData, // For hover info panel
-            movieTitle: masterNode.movieTitle,          // For hover info panel
-            tmdb_person_id: masterNode.tmdb_person_id,  // MODIFIED: Added for hover info panel images
+            actor_name: masterNode.actor_name,
+            title: createTooltipElement(masterNode.tooltipTextData, baseColor),
+            rawTooltipData: masterNode.tooltipTextData,
+            movieTitle: masterNode.movieTitle,
+            tmdb_person_id: masterNode.tmdb_person_id,
             size: size,
             shape: 'dot',
             color: {
@@ -530,9 +708,9 @@ function updateNetworkForMovie(selectedMovieTitle) {
             from: masterEdge.from,
             to: masterEdge.to,
             label: masterEdge.rawLabel,
-            title: createTooltipElement(masterEdge.tooltipTextData, masterEdge.rawBaseColor), // Vis.js tooltip
-            rawTooltipData: masterEdge.tooltipTextData, // For hover info panel
-            movieTitle: masterEdge.movieTitle,          // For hover info panel
+            title: createTooltipElement(masterEdge.tooltipTextData, masterEdge.rawBaseColor),
+            rawTooltipData: masterEdge.tooltipTextData,
+            movieTitle: masterEdge.movieTitle,
             width: getEdgeWidth(masterEdge.rawStrength),
             originalWidth: getEdgeWidth(masterEdge.rawStrength),
             color: { color: masterEdge.rawBaseColor, highlight: masterEdge.rawBaseColor, hover: masterEdge.rawBaseColor },
@@ -638,13 +816,20 @@ function updateNetworkForMovie(selectedMovieTitle) {
         allNodesDataSet.add(processedNodes);
         allEdgesDataSet.add(processedEdges);
         allEdgesDataSet.add(helperClusteringEdges);
-        network.setOptions({ physics: { enabled: true } });
-        network.stabilize(1500);
+        if (processedNodes.length > 0) { // Only enable physics if there are nodes
+            network.setOptions({ physics: { enabled: true } });
+            network.stabilize(1500); // Stabilize only if physics enabled
+        } else {
+            network.setOptions({ physics: { enabled: false } }); // Ensure physics is off for empty graph
+        }
     }
 
     clearTimeout(physicsStopTimeout);
-    physicsStopTimeout = setTimeout(stopPhysics, processedNodes.length > 100 ? 20000 : 10000);
-    if (network) network.fit();
+    if (processedNodes.length > 0) { // Only set timeout if there are nodes and physics might be running
+        physicsStopTimeout = setTimeout(stopPhysics, processedNodes.length > 100 ? 20000 : 10000);
+        if (network) network.fit();
+    }
+
 
     updateLegend();
     updateHoverInfoPanel(null); // Clear hover panel on network update
@@ -747,17 +932,18 @@ function setupNetworkEventListeners() {
         }
     });
 
-    // HOVER EVENT LISTENERS for Hover Info Panel
     network.on("hoverNode", function (params) {
         const nodeId = params.node;
         const nodeData = allNodesDataSet.get(nodeId);
         if (nodeData) {
             updateHoverInfoPanel(nodeData, 'node');
+            highlightCharacterInPlot(nodeData.label); // HIGHLIGHT PLOT
         }
     });
 
     network.on("blurNode", function (params) {
         updateHoverInfoPanel(null);
+        displayPlotInPanel(formattedOriginalPlotHTML); // RESET PLOT HIGHLIGHT
     });
 
     network.on("hoverEdge", function (params) {
@@ -792,7 +978,7 @@ async function main() {
 
         const initialMovie = document.getElementById('movieSelector').value;
         if (initialMovie && initialMovie !== "No movies available") {
-            updateNetworkForMovie(initialMovie);
+            updateNetworkForMovie(initialMovie); // This will also update the plot panel
         } else if (initialMovie === "No movies available") {
             console.log("No movies available to display.");
             const container = document.getElementById('mynetwork');
@@ -801,6 +987,9 @@ async function main() {
             }
             updateLegend();
             updateHoverInfoPanel(null);
+            // Explicitly set and display plot for "No movies" state
+            formattedOriginalPlotHTML = '<p class="info-placeholder">No plot summary as no movies are available in the database.</p>';
+            displayPlotInPanel(formattedOriginalPlotHTML);
         }
 
         console.log("Script fully loaded with YAML data and movie selector. Using HTML element titles for dynamic tooltip backgrounds.");
@@ -811,6 +1000,11 @@ async function main() {
         if (container) {
             container.innerHTML = `<p style="color:red; text-align:center; padding: 20px;">Error loading movie data: ${error.message}.<br>Please ensure 'clean_movie_database.yaml' is in the same folder and check the console for more details.</p>`;
         }
+        // Update other panels to reflect error state
+        updateLegend(); // Will show empty state
+        updateHoverInfoPanel(null);
+        formattedOriginalPlotHTML = `<p class="info-placeholder" style="color:red;">Plot not available due to data loading error: ${error.message}</p>`;
+        displayPlotInPanel(formattedOriginalPlotHTML);
     }
 }
 

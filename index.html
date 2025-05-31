@@ -45,42 +45,49 @@
       min-width: 200px;
     }
 
-    /* Flex container for network and the sidebar (legend-and-info-wrapper) */
     .network-area {
         display: flex;
-        flex-direction: row; /* Network and sidebar sit side-by-side */
+        flex-direction: row;
         justify-content: center;
-        align-items: flex-start; /* Align items to the top */
+        align-items: flex-start;
         width: 99%;
-        max-width: 1600px; /* Increased max-width to comfortably fit network and sidebar */
-        gap: 10px; /* Space between network and sidebar */
+        max-width: 1600px;
+        gap: 10px;
     }
 
     #mynetwork {
-        height: 75vh; /* Adjusted height slightly */
-        min-height: 550px; /* Adjusted min-height */
+        height: 75vh;
+        min-height: 550px;
         border: 1px solid #21252b;
         background-color: #21252b;
         border-radius: 6px;
         box-shadow: 0 5px 20px rgba(0,0,0,0.3);
         position: relative;
-        flex-grow: 1; /* Network takes available space */
-        min-width: 800px; /* Important for flex items to shrink if needed */
+        flex-grow: 1;
+        min-width: 800px;
     }
 
-    /* Sidebar Wrapper for Legend and Info Panel */
-    .legend-and-info-wrapper {
+    /* UPDATED: Sidebar Column for Legend, Info Panel, and Plot Summary */
+    .sidebar-column {
         display: flex;
-        flex-direction: row; /* Stack legend and info panel vertically */
-        gap: 10px;             /* Space between legend and info panel */
-        width: 600px;          /* Fixed width for the sidebar column */
-        max-height: 75vh;      /* Match network height */
-        flex-shrink: 0;        /* Prevent sidebar from shrinking */
-
-        /* overflow-y: auto; /* If combined content might exceed max-height and you want the wrapper to scroll */
+        flex-direction: column; /* Stack top row (legend/info) and plot panel vertically */
+        width: 600px;
+        height: 75vh; /* Match network height */
+        min-height: 550px; /* Match network min-height */
+        flex-shrink: 0;
+        gap: 10px; /* Gap between top-sidebar-row and plotSummaryPanel */
     }
 
-    #legend {
+    /* NEW: Row container for Legend and Info Panel */
+    .top-sidebar-row {
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
+        width: 100%;
+        flex-shrink: 0; /* Prevent this row from shrinking */
+    }
+
+    #legend, #hoverInfoPanel {
         background-color: #2c313a;
         padding: 10px;
         border-radius: 6px;
@@ -88,12 +95,14 @@
         box-shadow: 0 3px 10px rgba(0,0,0,0.2);
         color: #abb2bf;
         font-size: 0.9em;
-        overflow-y: auto; /* Allow legend to scroll if its content is tall */
-        flex-basis:50%;
-        flex-shrink: 0;
+        overflow-y: auto;
+        flex: 1; /* Each takes half of the top-sidebar-row width */
+        max-height: 35vh; /* Example max-height, adjust as needed or make it part of sidebar-column's flex distribution */
+                          /* Or remove max-height here if plotSummaryPanel's flex-grow is preferred to manage height */
     }
 
-    #legend h3 {
+
+    #legend h3, #hoverInfoPanel h3 { /* Shared styling for panel titles */
         margin-top: 0;
         margin-bottom: 10px;
         font-size: 1.1em;
@@ -119,25 +128,6 @@
         word-break: break-word;
     }
 
-    #hoverInfoPanel {
-        background-color: #2c313a;
-        padding: 10px;
-        border-radius: 6px;
-        border: 1px solid #21252b;
-        box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-        color: #abb2bf;
-        font-size: 0.9em;
-        overflow-y: auto; /* Allow info panel to scroll if its content is tall */
-    }
-
-    #hoverInfoPanel h3 {
-        margin-top: 0;
-        margin-bottom: 10px;
-        font-size: 1.1em;
-        color: #dedede;
-        border-bottom: 1px solid #434343;
-        padding-bottom: 5px;
-    }
     .info-item {
         margin-bottom: 6px;
         display: flex;
@@ -146,7 +136,7 @@
     .info-key {
         font-weight: bold;
         color: #c8c8c8;
-        min-width: 85px; /* Adjusted for potentially longer keys like "Connections" */
+        min-width: 85px;
         flex-shrink: 0;
         margin-right: 8px;
     }
@@ -160,6 +150,39 @@
         text-align: center;
         padding-top: 10px;
     }
+
+    /* NEW: Plot Summary Panel Styling */
+    #plotSummaryPanel {
+        background-color: #2c313a;
+        padding: 10px; /* Padding for the panel itself */
+        border-radius: 6px;
+        border: 1px solid #21252b;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        color: #abb2bf;
+        font-size: 0.9em;
+        overflow-y: auto; /* Allow plot summary to scroll if content is tall */
+        flex-grow: 1; /* Takes remaining vertical space in sidebar-column */
+        min-height: 0; /* Important for flex-grow in a flex column */
+        width: 100%; /* Span full width of sidebar-column */
+        box-sizing: border-box;
+        line-height: 1.5; /* Improved readability for plot text */
+    }
+    /* Style for plot content area if needed, but panel padding might be enough */
+    .plot-content-area {
+        /* If #plotSummaryPanel has padding, this might not need much */
+    }
+
+    /* NEW: CSS for highlighting character names in plot */
+    .highlighted-character {
+        background-color: #61afef; /* A distinct highlight color */
+        color: #282c34;      /* Contrasting text color */
+        font-weight: bold;
+        padding: 1px 4px;
+        border-radius: 3px;
+        box-decoration-break: clone; /* Ensures background/padding behaves well across line breaks */
+        -webkit-box-decoration-break: clone;
+    }
+
 
     /* Navigation Buttons CSS */
     .vis-network .vis-navigation div[role="button"] {
@@ -216,7 +239,7 @@
 <body>
   <div class="content-wrapper">
     <h1>Movie Character Relationships</h1>
-    <p class="description">Hover over nodes (characters) for details and over edges (lines) for relationship specifics.</p>
+    <p class="description">Hover over nodes (characters) for details and over edges (lines) for relationship specifics. Hover over characters in the network to highlight them in the plot summary.</p>
 
     <div class="controls">
       <label for="movieSelector">Select Movie:</label>
@@ -225,18 +248,25 @@
       </select>
     </div>
 
-    <!-- WRAPPER FOR NETWORK AND SIDEBAR PANELS -->
     <div class="network-area">
         <div id="mynetwork"></div>
 
-        <!-- SIDEBAR WRAPPER FOR LEGEND AND INFO PANEL -->
-        <div class="legend-and-info-wrapper">
-            <div id="legend">
-                <!-- Legend will be populated by JavaScript -->
-                <p class="info-placeholder">Legend loading...</p> <!-- Placeholder for legend -->
+        <!-- UPDATED: Sidebar Column -->
+        <div class="sidebar-column">
+            <!-- NEW: Top row for legend and info panel -->
+            <div class="top-sidebar-row">
+                <div id="legend">
+                    <p class="info-placeholder">Legend loading...</p>
+                </div>
+                <div id="hoverInfoPanel">
+                    <p class="info-placeholder">Hover over a character or relationship for details.</p>
+                </div>
             </div>
-            <div id="hoverInfoPanel">
-                <p class="info-placeholder">Hover over a character or relationship for details.</p>
+
+            <!-- NEW: Plot Summary Panel -->
+            <div id="plotSummaryPanel">
+                <!-- Content (title and plot text) will be populated by JavaScript -->
+                <!-- Initial placeholder can be set by JS if needed, or rely on JS to always populate -->
             </div>
         </div>
     </div>
