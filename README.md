@@ -3,7 +3,6 @@
 <p align="center">
   <img src="README.jpg" alt="Screenshot of the Movie Character Relationship Network" style="border-radius: 8px;">
   <br>
-  <i>(Consider replacing this placeholder with an actual screenshot or GIF of your application)</i>
 </p>
 
 An interactive web application to visualize and explore character relationships within movies. It loads movie data, including characters, their descriptions, and the relationships between them, from a YAML file and renders an interactive network graph using Vis.js. Users can select a movie from a dropdown, hover over characters and relationships for detailed information, and see dynamic highlighting of characters within the plot summary.
