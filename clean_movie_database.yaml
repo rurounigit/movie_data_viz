@@ -8938,3 +8938,711 @@
     on Steps (uncredited) and Policeman in Hallway Opening Door (uncredited) are seen
     at the office. The mystery is solved, revealing a chilling reality about Norman''s
     sanity.'
+- movie_title: Impossible Things
+  movie_year: '2021'
+  tmdb_movie_id: 667257
+  imdb_id: tt10032342
+  character_profile: The film centers on Matilde, a woman in her 70s, who finds her
+    quiet life disrupted by the arrival of Miguel, a young man who claims to be her
+    grandson. The character dynamics explore themes of family, memory, and the bonds
+    that connect generations. Matilde's initial skepticism gradually gives way to
+    a complex relationship with Miguel, forcing her to confront her past and the secrets
+    she has kept. The supporting characters, including neighbors and friends, add
+    layers to the narrative, highlighting the importance of community and human connection
+    in the face of personal challenges.
+  character_profile_big5:
+    Openness:
+      score: 4
+      explanation: The main character demonstrates openness by embracing new experiences
+        and perspectives despite personal challenges.
+    Conscientiousness:
+      score: 3
+      explanation: The character's level of conscientiousness varies, sometimes prioritizing
+        emotional needs over strict adherence to plans.
+    Extraversion:
+      score: 2
+      explanation: The character is more introverted, finding strength in introspection
+        and close relationships rather than seeking external validation.
+    Agreeableness:
+      score: 4
+      explanation: The character shows a high degree of agreeableness, prioritizing
+        empathy and understanding in their interactions.
+    Neuroticism:
+      score: 3
+      explanation: The character experiences moments of vulnerability and emotional
+        intensity, but generally maintains a balanced emotional state.
+  character_profile_myersbriggs:
+    type: INFJ
+    explanation: Introverted, Intuitive, Feeling, Judging (Advocate). The main character's
+      introspective nature, focus on values, and desire to help others align with
+      the INFJ personality type.
+  critical_reception: International critical reception for 'Impossible Things' has
+    been generally positive, with critics praising the film's sensitive portrayal
+    of aging, family dynamics, and the power of human connection. Many reviewers highlighted
+    the strong performances of the lead actors and the film's ability to evoke emotion
+    without resorting to melodrama. Some critics noted the film's pacing as deliberate,
+    allowing for a deeper exploration of the characters and their relationships. While
+    not without its detractors, the film has been lauded for its heartfelt storytelling
+    and its ability to resonate with audiences on a personal level.
+  visual_style: The visual style of 'Impossible Things' is characterized by a naturalistic
+    and intimate approach. The cinematography favors a warm color palette, often bathed
+    in natural light, creating a sense of warmth and nostalgia. Close-ups are frequently
+    used to emphasize the characters' emotions and the nuances of their interactions.
+    The camera work is generally unobtrusive, allowing the story to unfold organically.
+    Location shooting in a small town or village contributes to the film's sense of
+    place and authenticity. The overall aesthetic aims for a realistic portrayal of
+    everyday life, emphasizing the beauty found in simplicity and the subtle details
+    of human experience.
+  most_talked_about_related_topic: One of the most discussed aspects of 'Impossible
+    Things' revolves around the exploration of family secrets and the impact of past
+    events on present-day relationships. The film's narrative delves into the complexities
+    of familial bonds, particularly the challenges of communication and the lingering
+    effects of unspoken truths. The revelation of a hidden past and the subsequent
+    emotional fallout sparked considerable discussion among viewers and critics alike,
+    making it a central theme in post-screening discussions and reviews. The film's
+    handling of these sensitive topics has been both praised and debated.
+  genre_mix:
+    genres:
+      drama: 80
+      romance: 40
+      family: 30
+      independent: 20
+      comedy: 10
+  matching_tags:
+    tags:
+      Imperfect Unions: The film centers on the complexities of relationships, highlighting
+        the characters' shared vulnerabilities and the challenges they face together.
+  complex_search_queries:
+  - Independent films about elderly protagonists.
+  - Movies exploring intergenerational relationships and family secrets.
+  recommendations:
+  - title: Little Miss Sunshine
+    year: 2006
+    explanation: This film shares a similar heartwarming, character-driven narrative
+      with a focus on family dynamics and emotional depth, appealing to fans of 'Impossible
+      Things'.
+    imdb_id: tt0449059
+  - title: Silver Linings Playbook
+    year: 2012
+    explanation: Like 'Impossible Things', this movie explores the intricacies of
+      relationships and mental health, offering a relatable and emotionally resonant
+      experience.
+    imdb_id: tt1045658
+  - title: Hunt for the Wilderpeople
+    year: 2016
+    explanation: This film offers a similar blend of humor, heart, and character development,
+      creating a heartwarming and memorable viewing experience.
+    imdb_id: tt4698684
+  - title: About Time
+    year: 2013
+    explanation: This movie shares a similar focus on relationships and emotional
+      growth, offering a heartwarming and thought-provoking experience.
+    imdb_id: tt2194499
+  - title: Beginners
+    year: 2010
+    explanation: This film's focus on family, self-discovery, and emotional vulnerability
+      aligns with the themes of 'Impossible Things', offering a similarly intimate
+      and moving experience.
+    imdb_id: tt1532503
+  character_list:
+  - name: Matilde
+    actor_name: Nora Velázquez
+    tmdb_person_id: 1508206
+    description: An elderly woman facing eviction who forms an unlikely friendship
+      with Miguel.
+    group: Neighbors
+  - name: Miguel
+    actor_name: Benny Emmanuel
+    tmdb_person_id: 1379379
+    description: A young man who befriends Matilde and helps her navigate her difficult
+      situation.
+    group: Neighbors
+  - name: Eugenia
+    actor_name: Luisa Huertas
+    tmdb_person_id: 224508
+    description: Matilde's friend and confidante.
+    group: Neighbors
+  - name: Porfirio
+    actor_name: Salvador Garcini
+    tmdb_person_id: 941366
+    description: A character with a role in Matilde's life, possibly related to her
+      past.
+    group: Past Connections
+  - name: Lalo
+    actor_name: Andrés Delgado
+    tmdb_person_id: 1549908
+    description: A character who interacts with Matilde and Miguel, likely in a supporting
+      role.
+    group: Supporting Characters
+  - name: Laura
+    actor_name: Gabriela Cartol
+    tmdb_person_id: 1304427
+    description: A character who interacts with Matilde and Miguel.
+    group: Supporting Characters
+  - name: Manuel Chang
+    actor_name: Juan Carlos Medellin
+    tmdb_person_id: 1309461
+    description: A character who interacts with Matilde and Miguel.
+    group: Supporting Characters
+  - name: The singer
+    actor_name: Ari Gallegos
+    tmdb_person_id: 1017157
+    description: A singer who performs in the movie.
+    group: Performers
+  - name: Policeman
+    actor_name: Pablo Marín
+    tmdb_person_id: 3242962
+    description: A law enforcement officer who appears in the film.
+    group: Law Enforcement
+  - name: Nestor
+    actor_name: Héctor Holten
+    tmdb_person_id: 1413381
+    description: A character who interacts with Matilde and Miguel.
+    group: Supporting Characters
+  - name: Elena
+    actor_name: Norma Pablo
+    tmdb_person_id: 1211042
+    description: A character who interacts with Matilde and Miguel.
+    group: Supporting Characters
+  - name: Daniela
+    actor_name: Michelle Betancourt
+    tmdb_person_id: 1764882
+    description: A character who interacts with Matilde and Miguel.
+    group: Supporting Characters
+  - name: Chava
+    actor_name: Ángel Flores Torres
+    tmdb_person_id: 1206812
+    description: A character who interacts with Matilde and Miguel.
+    group: Supporting Characters
+  - name: Singer
+    actor_name: Veronica Toussaint
+    tmdb_person_id: 1912239
+    description: A singer who performs in the movie.
+    group: Performers
+  - name: Galaxia
+    actor_name: Haydee Leyva
+    tmdb_person_id: 1327353
+    description: A character who interacts with Matilde and Miguel.
+    group: Supporting Characters
+  - name: Plomero
+    actor_name: Adrián Vázquez
+    tmdb_person_id: 1413394
+    description: A plumber who appears in the film.
+    group: Supporting Characters
+  - name: Narro
+    actor_name: Bruno Coronel
+    tmdb_person_id: 1947775
+    description: A character who interacts with Matilde and Miguel.
+    group: Supporting Characters
+  - name: Rosita
+    actor_name: Tete Espinoza
+    tmdb_person_id: 1811039
+    description: A character who interacts with Matilde and Miguel.
+    group: Supporting Characters
+  - name: Demostradora
+    actor_name: Nora Isabel Huerta
+    tmdb_person_id: 3669118
+    description: A character who interacts with Matilde and Miguel.
+    group: Supporting Characters
+  - name: Guardia de seguridad
+    actor_name: Armando Casas
+    tmdb_person_id: 985464
+    description: A security guard who appears in the film.
+    group: Supporting Characters
+  - name: Empleada
+    actor_name: Claudia Acosta
+    tmdb_person_id: 1476669
+    description: A character who interacts with Matilde and Miguel.
+    group: Supporting Characters
+  - name: Matilde joven
+    actor_name: Adriana Llabrés
+    tmdb_person_id: 1831843
+    description: A younger version of Matilde, likely shown in flashbacks.
+    group: Past Connections
+  - name: Ernesto
+    actor_name: Christian Cortés
+    tmdb_person_id: 2255016
+    description: A character who interacts with Matilde and Miguel.
+    group: Supporting Characters
+  - name: Porfirio joven / Porfirio sin rostro
+    actor_name: Lucas Mollard
+    tmdb_person_id: 3669125
+    description: A younger version of Porfirio, possibly in flashbacks.
+    group: Past Connections
+  - name: La Güera
+    actor_name: Paulina Álvarez Muñoz
+    tmdb_person_id: 2934648
+    description: A character who interacts with Matilde and Miguel.
+    group: Supporting Characters
+  - name: Chica que compra drogas
+    actor_name: Danae Reynaud
+    tmdb_person_id: 1198613
+    description: A character who interacts with Matilde and Miguel.
+    group: Supporting Characters
+  relationships:
+  - source: Matilde
+    target: Miguel
+    type: Friend
+    description: Matilde and Miguel form an unlikely friendship.
+    sentiment: positive
+    strength: 4
+    tense: evolving
+  - source: Matilde
+    target: Eugenia
+    type: Friend
+    description: Matilde and Eugenia are friends who support each other.
+    sentiment: positive
+    strength: 3
+    tense: present
+  - source: Matilde
+    target: Porfirio
+    type: Past Connection
+    description: Matilde has a connection to Porfirio, possibly from her past.
+    sentiment: neutral
+    strength: 2
+    tense: past
+  - source: Miguel
+    target: Lalo
+    type: Acquaintance
+    description: Miguel interacts with Lalo.
+    sentiment: neutral
+    strength: 1
+    tense: present
+  - source: Miguel
+    target: Laura
+    type: Acquaintance
+    description: Miguel interacts with Laura.
+    sentiment: neutral
+    strength: 1
+    tense: present
+  - source: Matilde
+    target: Manuel Chang
+    type: Acquaintance
+    description: Matilde interacts with Manuel Chang.
+    sentiment: neutral
+    strength: 1
+    tense: present
+  - source: Matilde
+    target: The singer
+    type: Acquaintance
+    description: Matilde may encounter the singer.
+    sentiment: neutral
+    strength: 1
+    tense: present
+  - source: Matilde
+    target: Policeman
+    type: Authority
+    description: Matilde interacts with the Policeman.
+    sentiment: neutral
+    strength: 2
+    tense: present
+  - source: Matilde
+    target: Nestor
+    type: Acquaintance
+    description: Matilde interacts with Nestor.
+    sentiment: neutral
+    strength: 1
+    tense: present
+  - source: Matilde
+    target: Elena
+    type: Acquaintance
+    description: Matilde interacts with Elena.
+    sentiment: neutral
+    strength: 1
+    tense: present
+  - source: Matilde
+    target: Daniela
+    type: Acquaintance
+    description: Matilde interacts with Daniela.
+    sentiment: neutral
+    strength: 1
+    tense: present
+  - source: Matilde
+    target: Chava
+    type: Acquaintance
+    description: Matilde interacts with Chava.
+    sentiment: neutral
+    strength: 1
+    tense: present
+  - source: Matilde
+    target: Singer
+    type: Acquaintance
+    description: Matilde may encounter the singer.
+    sentiment: neutral
+    strength: 1
+    tense: present
+  - source: Matilde
+    target: Galaxia
+    type: Acquaintance
+    description: Matilde interacts with Galaxia.
+    sentiment: neutral
+    strength: 1
+    tense: present
+  - source: Matilde
+    target: Plomero
+    type: Acquaintance
+    description: Matilde interacts with the Plomero.
+    sentiment: neutral
+    strength: 1
+    tense: present
+  - source: Matilde
+    target: Narro
+    type: Acquaintance
+    description: Matilde interacts with Narro.
+    sentiment: neutral
+    strength: 1
+    tense: present
+  - source: Matilde
+    target: Rosita
+    type: Acquaintance
+    description: Matilde interacts with Rosita.
+    sentiment: neutral
+    strength: 1
+    tense: present
+  - source: Matilde
+    target: Demostradora
+    type: Acquaintance
+    description: Matilde interacts with Demostradora.
+    sentiment: neutral
+    strength: 1
+    tense: present
+  - source: Matilde
+    target: Guardia de seguridad
+    type: Acquaintance
+    description: Matilde interacts with the Guardia de seguridad.
+    sentiment: neutral
+    strength: 1
+    tense: present
+  - source: Matilde
+    target: Empleada
+    type: Acquaintance
+    description: Matilde interacts with the Empleada.
+    sentiment: neutral
+    strength: 1
+    tense: present
+  - source: Matilde
+    target: Matilde joven
+    type: Self
+    description: Matilde's past self is shown.
+    sentiment: neutral
+    strength: 3
+    tense: past
+  - source: Matilde
+    target: Ernesto
+    type: Acquaintance
+    description: Matilde interacts with Ernesto.
+    sentiment: neutral
+    strength: 1
+    tense: present
+  - source: Matilde
+    target: Porfirio joven / Porfirio sin rostro
+    type: Past Connection
+    description: Matilde's past connection with Porfirio is shown.
+    sentiment: neutral
+    strength: 2
+    tense: past
+  - source: Matilde
+    target: La Güera
+    type: Acquaintance
+    description: Matilde interacts with La Güera.
+    sentiment: neutral
+    strength: 1
+    tense: present
+  - source: Miguel
+    target: Chica que compra drogas
+    type: Acquaintance
+    description: Miguel interacts with the Chica que compra drogas.
+    sentiment: neutral
+    strength: 1
+    tense: present
+  plot_with_character_constraints_and_relations: In a world grappling with hardship,
+    Matilde navigates the complexities of her life. Matilde's unlikely friendship
+    with Miguel provides her with solace. Eugenia, a friend to Matilde, offers support
+    as Matilde confronts her past connection to Porfirio, potentially revisiting a
+    past she'd rather leave behind. Flashbacks reveal Matilde joven and her connection
+    to Porfirio joven / Porfirio sin rostro, hinting at unresolved issues. Throughout
+    her day, Matilde interacts with a variety of people, including Manuel Chang, Nestor,
+    Elena, Daniela, Chava, Galaxia, the Plomero, Narro, Rosita, Demostradora, and
+    the Guardia de seguridad. Matilde's path crosses with the Policeman, adding another
+    layer of tension to her daily life. Miguel's acquaintance Lalo and Laura also
+    appear in the story. Matilde might encounter The singer and Singer. The Empleada
+    and La Güera also play their roles. The struggles of the Chica que compra drogas
+    are also shown, as Miguel interacts with her. Matilde's resilience is tested as
+    she faces an uncertain future, seeking strength from her friendships and confronting
+    the echoes of her past, finally finding peace. Ernesto also plays a role in her
+    journey.
+- movie_title: Harakiri
+  movie_year: '1962'
+  tmdb_movie_id: 14537
+  imdb_id: tt0056058
+  character_profile: The film presents a stark portrayal of samurai society, focusing
+    on the desperation and moral decay within. The central figure, Tsugumo Hanshiro,
+    is a ronin seeking to commit ritual suicide (seppuku) at the house of a feudal
+    lord. His character is initially presented as a weary and impoverished warrior,
+    but as the narrative unfolds through flashbacks, his motivations and the true
+    nature of the events leading to his request are revealed. The film also features
+    the clan's samurai, who are shown to be cruel and hypocritical, highlighting the
+    corruption within the system.
+  character_profile_big5:
+    Openness:
+      score: 4
+      explanation: Kuwahara's willingness to challenge the established samurai order
+        and his pursuit of justice demonstrates a high degree of openness to new ideas
+        and experiences.
+    Conscientiousness:
+      score: 5
+      explanation: Kuwahara is incredibly disciplined and persistent in his quest
+        for revenge, meticulously planning and executing his actions with unwavering
+        focus.
+    Extraversion:
+      score: 2
+      explanation: Kuwahara is largely introverted, maintaining a stoic and reserved
+        demeanor throughout the film, and rarely engaging in overt displays of emotion
+        or seeking social interaction.
+    Agreeableness:
+      score: 1
+      explanation: Kuwahara is not agreeable; he is confrontational and willing to
+        defy authority, driven by his personal code and desire for vengeance, even
+        if it means causing conflict.
+    Neuroticism:
+      score: 4
+      explanation: While outwardly composed, Kuwahara's actions are driven by deep
+        emotional pain and a desire for retribution, suggesting a high degree of underlying
+        emotional sensitivity and potential for stress.
+  character_profile_myersbriggs:
+    type: ISTJ
+    explanation: Kuwahara's ISTJ type is evident in his adherence to a strict personal
+      code, his methodical approach to achieving his goals, his focus on facts and
+      details, and his reserved, pragmatic nature.
+  critical_reception: Harakiri received widespread critical acclaim upon its release
+    and continues to be lauded as a masterpiece of Japanese cinema. Critics praised
+    its powerful storytelling, thematic depth, and unflinching portrayal of samurai
+    honor and hypocrisy. The film's slow burn pacing and deliberate use of flashbacks
+    were lauded for building suspense and revealing the complexities of the characters
+    and their motivations. It is often cited as one of the greatest samurai films
+    ever made, celebrated for its anti-establishment themes and its exploration of
+    the human condition.
+  visual_style: The film's visual style is characterized by its stark simplicity and
+    meticulous composition. The use of black and white cinematography emphasizes the
+    dramatic contrasts and the emotional weight of the scenes. The camera work is
+    deliberate and often static, allowing the viewer to fully absorb the performances
+    and the carefully constructed sets. The film frequently uses long takes and slow
+    pans to build tension and create a sense of formality. The use of shadows and
+    light is particularly effective in highlighting the characters' emotions and the
+    film's themes of honor and betrayal. The film's visual style is a key element
+    in its enduring power.
+  most_talked_about_related_topic: The film's most talked-about aspect is its unflinching
+    depiction of seppuku, the ritual suicide practiced by samurai. The graphic and
+    brutal portrayal of the act, and the events leading up to it, are shocking and
+    moving. The film doesn't shy away from the violence, but uses it to underscore
+    the themes of honor, duty, and the consequences of adhering to a rigid code. The
+    film's exploration of the hypocrisy and cruelty within the samurai class, revealed
+    through the seppuku scenes, remains a powerful and controversial aspect of the
+    film.
+  genre_mix:
+    genres:
+      drama: 90
+      action: 30
+      historical: 70
+      samurai: 80
+      thriller: 40
+      revenge: 60
+  matching_tags:
+    tags:
+      Lo-Fi Epic: Despite its grand themes of honor, revenge, and societal critique,
+        the film is told through a grounded, intimate, character-driven lens, focusing
+        on the personal struggles of the characters.
+      Legacy Reckoning: The film is a historical drama that confronts the legacy of
+        the samurai class and the societal expectations of honor and duty, reflecting
+        on the past and its impact on the present.
+  complex_search_queries:
+  - Best samurai movies exploring themes of honor and revenge
+  - Movies with powerful critiques of societal hypocrisy
+  recommendations:
+  - title: Seven Samurai
+    year: 1954
+    explanation: A high-rated, classic samurai film with a similar focus on honor,
+      duty, and the struggles of individuals against a larger societal backdrop, offering
+      a comparable viewing experience.
+    imdb_id: tt0047478
+  - title: Yojimbo
+    year: 1961
+    explanation: This film shares a similar tone of stoicism and moral ambiguity,
+      with a lone samurai navigating a world of conflict, appealing to fans of 'Harakiri's'
+      intense and character-driven narrative.
+    imdb_id: tt0055630
+  - title: Rashomon
+    year: 1950
+    explanation: A critically acclaimed film exploring themes of truth, perspective,
+      and the complexities of human nature, offering a similar thought-provoking experience
+      to 'Harakiri'.
+    imdb_id: tt0042876
+  - title: Ran
+    year: 1985
+    explanation: A visually stunning and emotionally powerful epic that, like 'Harakiri',
+      explores themes of honor, betrayal, and the destructive nature of power within
+      a historical setting.
+    imdb_id: tt0089881
+  - title: Throne of Blood
+    year: 1957
+    explanation: This film, like 'Harakiri', is a dark and intense drama that explores
+      themes of ambition, betrayal, and the consequences of one's actions, offering
+      a similar viewing experience.
+    imdb_id: tt0050613
+  character_list:
+  - name: Hanshiro Tsugumo
+    actor_name: Tatsuya Nakadai
+    tmdb_person_id: 70131
+    description: A ronin seeking to avenge his family's honor, challenging the clan's
+      traditions and exposing their hypocrisy.
+    group: Challengers
+  - name: Motome Chijiiwa
+    actor_name: Akira Ishihama
+    tmdb_person_id: 76977
+    description: A samurai, forced to commit seppuku, whose death sets the stage for
+      the film's central conflict.
+    group: Samurai
+  - name: Miho Tsugumo
+    actor_name: Shima Iwashita
+    tmdb_person_id: 76976
+    description: Hanshiro's daughter, whose death deeply affects him.
+    group: Family Members
+  - name: Hikokuro Omodaka
+    actor_name: Tetsuro Tamba
+    tmdb_person_id: 10071
+    description: A senior samurai in the clan, involved in the events surrounding
+      the seppuku of other samurai.
+    group: Samurai
+  - name: Tango Inaba
+    actor_name: Masao Mishima
+    tmdb_person_id: 125721
+    description: A samurai in the clan, involved in the events surrounding the seppuku
+      of other samurai.
+    group: Samurai
+  - name: Hayato Yazaki
+    actor_name: Ichirō Nakatani
+    tmdb_person_id: 118993
+    description: A samurai in the clan, involved in the events surrounding the seppuku
+      of other samurai.
+    group: Samurai
+  - name: Masakazu
+    actor_name: Kei Satō
+    tmdb_person_id: 33730
+    description: A samurai in the clan, involved in the events surrounding the seppuku
+      of other samurai.
+    group: Samurai
+  - name: JInai Chijiiwa
+    actor_name: Yoshio Inaba
+    tmdb_person_id: 20828
+    description: A samurai in the clan, involved in the events surrounding the seppuku
+      of other samurai.
+    group: Samurai
+  - name: Retainer
+    actor_name: Hisashi Igawa
+    tmdb_person_id: 96637
+    description: A member of the clan, possibly a guard or official.
+    group: Guards
+  - name: Retainer
+    actor_name: Tōru Takeuchi
+    tmdb_person_id: 1499600
+    description: A member of the clan, possibly a guard or official.
+    group: Guards
+  - name: Kageyu Saito
+    actor_name: Rentaro Mikuni
+    tmdb_person_id: 76975
+    description: The head of the clan, representing the authority and the target of
+      Hanshiro's challenge.
+    group: Samurai
+  relationships:
+  - source: Hanshiro Tsugumo
+    target: Miho Tsugumo
+    type: Family
+    description: Hanshiro's daughter, whose death motivates his actions.
+    sentiment: positive
+    strength: 5
+    tense: past
+  - source: Hanshiro Tsugumo
+    target: Motome Chijiiwa
+    type: Opponent
+    description: Hanshiro's challenge is a direct response to the events surrounding
+      Motome's seppuku.
+    sentiment: negative
+    strength: 4
+    tense: past
+  - source: Hanshiro Tsugumo
+    target: Kageyu Saito
+    type: Rival
+    description: Hanshiro directly challenges Saito and the clan's authority.
+    sentiment: negative
+    strength: 5
+    tense: present
+  - source: Motome Chijiiwa
+    target: Kageyu Saito
+    type: Subordinate
+    description: Motome is a member of Saito's clan, and his fate is determined by
+      Saito's decisions.
+    sentiment: neutral
+    strength: 3
+    tense: past
+  - source: Hikokuro Omodaka
+    target: Hanshiro Tsugumo
+    type: Opponent
+    description: Hikokuro is involved in the events that lead to Hanshiro's challenge.
+    sentiment: negative
+    strength: 4
+    tense: present
+  - source: Tango Inaba
+    target: Hanshiro Tsugumo
+    type: Opponent
+    description: Tango is involved in the events that lead to Hanshiro's challenge.
+    sentiment: negative
+    strength: 4
+    tense: present
+  - source: Hayato Yazaki
+    target: Hanshiro Tsugumo
+    type: Opponent
+    description: Hayato is involved in the events that lead to Hanshiro's challenge.
+    sentiment: negative
+    strength: 4
+    tense: present
+  - source: Masakazu
+    target: Hanshiro Tsugumo
+    type: Opponent
+    description: Masakazu is involved in the events that lead to Hanshiro's challenge.
+    sentiment: negative
+    strength: 4
+    tense: present
+  - source: JInai Chijiiwa
+    target: Hanshiro Tsugumo
+    type: Opponent
+    description: JInai is involved in the events that lead to Hanshiro's challenge.
+    sentiment: negative
+    strength: 4
+    tense: present
+  tmdb_user_review_summary: User reviews for 'Harakiri' (1962) highlight its status
+    as a Japanese cinematic classic. The film is praised for its strong storytelling,
+    particularly the use of nested narratives, and its unflawed execution. One reviewer
+    suggests the film explores themes of truth and may even be predictive of certain
+    modern societal issues. Another review emphasizes the film's cultural significance,
+    noting Japan's rich history and the potential for Western audiences to undervalue
+    it. While acknowledging that some modern viewers might find it challenging, the
+    reviews generally encourage giving the film a chance.
+  plot_with_character_constraints_and_relations: 'The film opens with Hanshiro Tsugumo
+    arriving at the manor, requesting to commit seppuku. His request is a direct challenge
+    to Kageyu Saito and the clan. The audience is introduced to the tragic past of
+    Hanshiro Tsugumo, whose daughter, Miho Tsugumo, died, motivating his current actions.
+    Kageyu Saito, a powerful figure, is initially dismissive, but Hanshiro Tsugumo''s
+    resolve forces him to listen.
+
+    Flashbacks reveal the circumstances surrounding the death of Motome Chijiiwa,
+    a member of Kageyu Saito''s clan. Motome Chijiiwa was forced to commit seppuku,
+    and Hanshiro Tsugumo''s challenge is a response to the events surrounding that.
+    Kageyu Saito, suspecting Hanshiro Tsugumo''s true motives, orders three retainers
+    to recount their experiences with seppuku.
+
+    However, Hanshiro Tsugumo reveals a dark secret - the retainers, Hikokuro Omodaka,
+    Tango Inaba, Hayato Yazaki, Masakazu, and Jinai Chijiiwa, were involved in the
+    events and are forced to face the consequences of their actions. The true nature
+    of the clan''s cruelty is exposed. The film culminates in a tense confrontation,
+    with Hanshiro Tsugumo challenging Kageyu Saito and the clan''s authority, leading
+    to a bloody and tragic conclusion.'

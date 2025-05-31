@@ -13,7 +13,7 @@ An interactive web application to visualize and explore character relationships 
 *   **Dynamic Movie Selection:** Choose from a list of movies loaded from your data source to explore different relationship networks.
 *   **Detailed Hover Information:**
     *   **Characters:** Hover over a node to see the character's name, actor, group, detailed description, and associated images (actor and character-specific).
-    *   **Relationships:** Hover over an edge to view its type, strength, sentiment (e.g., positive, negative, complicated), and a specific description.
+    *   **Relationships:** Hover over an edge to view its type, strength, sentiment (e.g., positive, negative, complicated), specific description, and a potential illustrative image for the relationship.
 *   **Dynamic Legend:** Automatically updates to show the character groups and relationship sentiments present in the currently selected movie's network.
 *   **Plot Summary Panel:** Displays the plot synopsis for the selected movie, with an intelligent highlighting feature that emphasizes character names as you hover over their corresponding nodes in the network.
 *   **Physics-Based Layout:** The graph uses a force-directed layout that simulates physical forces, providing an organic and easy-to-understand arrangement of nodes.
@@ -42,7 +42,7 @@ This project is a static web application and does not require any server-side se
 
 2.  **Ensure data files are present:**
     *   Place your movie character relationship data in a file named `clean_movie_database.yaml` in the root directory of the project.
-    *   Create an `output/character_images/` directory in the root for character and actor images (see "Image Assets" below).
+    *   Create an `output/character_images/` directory in the root for character, actor, and relationship images (see "Image Assets" below).
 
 3.  **Open in Browser:** Simply open the `index.html` file in your preferred web browser.
     ```bash
@@ -59,7 +59,7 @@ This project is a static web application and does not require any server-side se
     *   **Edges (Relationships):** Lines connecting characters represent relationships. Their thickness scales with "strength", and colors indicate "sentiment".
 3.  **Get Details (Hover):**
     *   **Hover over a character node:** The "Character Details" panel on the right will display their name, actor, group, a description, and any associated images.
-    *   **Hover over a relationship edge:** The "Relationship Details" panel will show the relationship type, sentiment, and description.
+    *   **Hover over a relationship edge:** The "Relationship Details" panel will show the relationship type, sentiment, description, and potentially an image illustrating that relationship.
 4.  **Highlight in Plot (Hover Character):** As you hover over a character node, their name will be highlighted in the "Plot Summary" panel below the details panel, helping you quickly locate their relevance in the story.
 5.  **Graph Interaction:**
     *   **Zoom and Pan:** Use your mouse scroll wheel or the navigation buttons (top-left corner of the network) to zoom in/out and pan around the graph.
@@ -106,16 +106,24 @@ The application expects its movie data in a YAML file named `clean_movie_databas
 
 ## 🖼️ Image Assets (`output/character_images/`)
 
-The application attempts to load character and actor images for the info panel. These images should be placed in the `output/character_images/` directory.
+The application attempts to load character, actor, and relationship images for the info panel. These images should be placed in the `output/character_images/` directory.
 
 *   **Actor Images:** Should be named after the `tmdb_person_id` found in the YAML.
     *   Example: `123456.jpg`, `789012.png`
 *   **Character-Specific Images:** Should follow a specific naming convention:
-    *   `[tmdb_person_id]_char_[slugified_character_name]_[index].jpg`
+    *   `[tmdb_person_id]_char_[slugified_character_name]_[index].(ext)`
         *   `[slugified_character_name]` is a lowercase, hyphen-separated version of the character's name (e.g., "character-a").
         *   `[index]` is usually `1` for the first image.
     *   Example: `123456_char_character-a_1.png`
-*   **Fallback Character Images:** If a character has no `tmdb_person_id`, the application will try to load `[slugified_character_name]_char_unknown_id_[index].jpg`.
+*   **Fallback Character Images:** If a character has no `tmdb_person_id`, the application will try to load `[slugified_character_name]_char_unknown_id_[index].(ext)`.
+*   **Relationship Images:** Images illustrating a relationship can be displayed in the "Relationship Details" panel. The application will attempt to load an image based on the names of the two characters involved in the relationship.
+    *   Naming convention: `rel_[slugified_source_name]_[slugified_target_name]_[index].(ext)` or `rel_[slugified_target_name]_[slugified_source_name]_[index].(ext)`
+        *   `[slugified_source_name]` and `[slugified_target_name]` are the slugified names of the characters in the relationship.
+        *   The script tries both orders (source-target and target-source) for the filename.
+        *   `[index]` is typically `1`.
+    *   Example: For a relationship between "Hikokuro Omodaka" and "Hanshiro Tsugumo", the script would look for:
+        *   `rel_hikokuro-omodaka_hanshiro-tsugumo_1.jpg` (or .png, .jpeg, .webp)
+        *   OR `rel_hanshiro-tsugumo_hikokuro-omodaka_1.jpg` (or .png, .jpeg, .webp)
 
 Supported image extensions (in order of preference): `.jpg`, `.png`, `.jpeg`, `.webp`.
 

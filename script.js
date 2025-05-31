@@ -391,7 +391,7 @@ function updateHoverInfoPanel(itemData, type) {
         addInfoItem(panel, 'Name:', itemData.label);
         addInfoItem(panel, 'Actor:', itemData.actor_name);
 
-        if (itemData.tmdb_person_id) {
+        if (itemData.tmdb_person_id || itemData.label) { // Allow character image even if no TMDb ID
             const imagePanelDiv = document.createElement('div');
             imagePanelDiv.style.display = 'flex';
             imagePanelDiv.style.justifyContent = 'space-around';
@@ -403,23 +403,18 @@ function updateHoverInfoPanel(itemData, type) {
 
             const actorImgElement = document.createElement('img');
             actorImgElement.alt = `Actor: ${itemData.actor_name || 'N/A'}`;
+            actorImgElement.className = 'info-panel-image'; // Class for common styles
+            // Specific styles that might differ or override class
             actorImgElement.style.maxWidth = '80px';
             actorImgElement.style.maxHeight = '120px';
-            actorImgElement.style.objectFit = 'contain';
-            actorImgElement.style.borderRadius = '4px';
-            actorImgElement.style.backgroundColor = '#3a3f4b';
-            actorImgElement.className = 'info-panel-image';
-            actorImgElement.style.display = 'none';
+            actorImgElement.style.display = 'none'; // Initially hidden
 
             const charImgElement = document.createElement('img');
             charImgElement.alt = `Character: ${itemData.label || 'N/A'}`;
+            charImgElement.className = 'info-panel-image'; // Class for common styles
             charImgElement.style.maxWidth = '80px';
             charImgElement.style.maxHeight = '120px';
-            charImgElement.style.objectFit = 'contain';
-            charImgElement.style.borderRadius = '4px';
-            charImgElement.style.backgroundColor = '#3a3f4b';
-            charImgElement.className = 'info-panel-image';
-            charImgElement.style.display = 'none';
+            charImgElement.style.display = 'none'; // Initially hidden
 
             imagePanelDiv.appendChild(actorImgElement);
             imagePanelDiv.appendChild(charImgElement);
@@ -450,9 +445,9 @@ function updateHoverInfoPanel(itemData, type) {
                 }
             };
 
-            let actorAttemptDone = !itemData.tmdb_person_id;
-            let charAttemptDone = (!itemData.tmdb_person_id && !itemData.label) || (!itemData.label);
-
+            // Initialize attempts done flags
+            let actorAttemptDone = !itemData.tmdb_person_id; // Done if no ID to even try for actor
+            let charAttemptDone = !itemData.label; // Done if no label to try for character
 
             if (itemData.tmdb_person_id) {
                 const actorFilename = itemData.tmdb_person_id;
@@ -462,14 +457,13 @@ function updateHoverInfoPanel(itemData, type) {
                 });
             }
 
-            if (itemData.tmdb_person_id && itemData.label) {
-                const charFilename = `${itemData.tmdb_person_id}_char_${slugify(itemData.label)}_1`;
-                tryLoadImageWithExtensions(charImgElement, charFilename, COMMON_IMAGE_EXTENSIONS, (success) => {
-                    characterImageLoaded = success; charAttemptDone = true;
-                    if(actorAttemptDone) updateImagePanelVisibility();
-                });
-            } else if (itemData.label) {
-                const charFilename = `${slugify(itemData.label)}_char_unknown_id_1`;
+            if (itemData.label) { // Character image attempt only needs label
+                let charFilename;
+                if (itemData.tmdb_person_id) { // Prefer ID-based char image if ID exists
+                    charFilename = `${itemData.tmdb_person_id}_char_${slugify(itemData.label)}_1`;
+                } else { // Fallback to name-only char image
+                    charFilename = `${slugify(itemData.label)}_char_unknown_id_1`;
+                }
                 tryLoadImageWithExtensions(charImgElement, charFilename, COMMON_IMAGE_EXTENSIONS, (success) => {
                     characterImageLoaded = success; charAttemptDone = true;
                     if(actorAttemptDone) updateImagePanelVisibility();
@@ -477,13 +471,12 @@ function updateHoverInfoPanel(itemData, type) {
             }
 
             panel.appendChild(imagePanelDiv);
-            if (!actorAttemptDone || !charAttemptDone) { // If any attempt is pending initially hide.
+            // Initial visibility check
+            if (!actorAttemptDone || !charAttemptDone) {
                  imagePanelDiv.style.display = 'none';
-            } else { // If all attempts are done (e.g. no ids/names), update visibility
+            } else {
                  updateImagePanelVisibility();
             }
-
-
         }
 
         addInfoItem(panel, 'Group:', itemData.group);
@@ -503,6 +496,71 @@ function updateHoverInfoPanel(itemData, type) {
         addInfoItem(panel, 'To:', toNode ? toNode.label : `ID: ${itemData.to}`);
         addInfoItem(panel, 'Sentiment:', itemData.sentiment ? (itemData.sentiment.charAt(0).toUpperCase() + itemData.sentiment.slice(1)) : "N/A");
         if (description) addInfoItem(panel, 'Description:', description, true);
+
+        // NEW: Relationship Image Display
+        if (fromNode && fromNode.label && toNode && toNode.label) {
+            const sourceName = fromNode.label;
+            const targetName = toNode.label;
+
+            const relImagePanelDiv = document.createElement('div');
+            relImagePanelDiv.style.marginTop = '10px';
+            // relImagePanelDiv.style.textAlign = 'center'; // Not needed if image is block with auto margins
+            relImagePanelDiv.style.display = 'none'; // Initially hidden, shown if image loads
+
+            const relImgElement = document.createElement('img');
+            relImgElement.alt = `Visual for relationship: ${sourceName} & ${targetName}`;
+            relImgElement.className = 'info-panel-image'; // For common styles like border-radius, background-color
+            // Override or set specific styles for relationship image
+            relImgElement.style.maxWidth = '90%'; // % of its container (relImagePanelDiv)
+            relImgElement.style.maxHeight = '150px';
+            relImgElement.style.display = 'none'; // Initially hidden, loader sets to 'block'
+            relImgElement.style.margin = '0 auto'; // Center if block and not full width
+
+            relImagePanelDiv.appendChild(relImgElement);
+            panel.appendChild(relImagePanelDiv);
+
+            const slugSourceName = slugify(sourceName);
+            const slugTargetName = slugify(targetName);
+
+            // Filenames to try (e.g., rel_char1_char2_1 and rel_char2_char1_1)
+            const relFilenamePrefix1 = `rel_${slugSourceName}_${slugTargetName}_1`;
+            const relFilenamePrefix2 = `rel_${slugTargetName}_${slugSourceName}_1`;
+
+            const tryLoadImageWithExtensions = (imgElement, filenamePrefix, extensions, callback) => {
+                let currentExtensionIndex = 0;
+                const attemptLoad = () => {
+                    if (currentExtensionIndex < extensions.length) {
+                        const testSrc = `${IMAGE_BASE_PATH}${filenamePrefix}${extensions[currentExtensionIndex]}`;
+                        imgElement.src = testSrc;
+                        imgElement.onload = () => { imgElement.style.display = 'block'; callback(true); };
+                        imgElement.onerror = () => { currentExtensionIndex++; attemptLoad(); };
+                    } else {
+                        imgElement.style.display = 'none'; callback(false);
+                    }
+                };
+                attemptLoad();
+            };
+
+            const loadImageCallback = (success) => {
+                if (success) {
+                    relImagePanelDiv.style.display = 'block'; // Show container if image loaded
+                }
+            };
+
+            tryLoadImageWithExtensions(relImgElement, relFilenamePrefix1, COMMON_IMAGE_EXTENSIONS, (success1) => {
+                if (success1) {
+                    loadImageCallback(true);
+                } else {
+                    // If first prefix failed, try the second one
+                    tryLoadImageWithExtensions(relImgElement, relFilenamePrefix2, COMMON_IMAGE_EXTENSIONS, (success2) => {
+                        if (success2) {
+                            loadImageCallback(true);
+                        }
+                        // If both fail, relImagePanelDiv remains display: 'none'
+                    });
+                }
+            });
+        }
 
     } else {
          panel.innerHTML = '<p class="info-placeholder">Hover over a character or relationship for details.</p>';
@@ -602,19 +660,13 @@ function highlightCharacterInPlot(characterName) {
             finalHighlightedHtml += "<br>"; // Add <br> for newlines between original lines
         }
 
-        // If the line is empty or only whitespace, it's handled by the <br> above or will be empty.
         if (!line.trim()) {
-            // If the original line had spaces, preserve them (though usually a <br> handles visual break)
-            // finalHighlightedHtml += line; // This might add unnecessary whitespace.
-                                         // The <br> usually suffices.
-            return; // Continue to next line
+            return;
         }
 
         const sentences = splitLineIntoSentences(line);
 
         if (!sentences || sentences.length === 0) {
-            // This case handles lines that are not empty but don't split into sentences (e.g., just "..." or a title)
-            // Or if splitLineIntoSentences returns an empty array for a non-empty line (should be rare with current regex)
             let htmlEscapedLine = line
                 .replace(/&/g, "&")
                 .replace(/</g, "<")
@@ -622,19 +674,19 @@ function highlightCharacterInPlot(characterName) {
             let lineWithCharHighlight = highlightCharacterNameInText(htmlEscapedLine, characterName);
 
             const checkRegex = new RegExp(`\\b${escapeRegExp(characterName)}\\b`);
-            if (checkRegex.test(line)) { // Check original line for character presence
+            if (checkRegex.test(line)) {
                 finalHighlightedHtml += `<span class="sentence-highlight">${lineWithCharHighlight}</span>`;
             } else {
                 finalHighlightedHtml += lineWithCharHighlight;
             }
-            return; // Continue to next line
+            return;
         }
 
         sentences.forEach((sentence) => {
-            if (!sentence.trim()) return; // Should be filtered by splitLineIntoSentences, but good practice
+            if (!sentence.trim()) return;
 
             const checkRegex = new RegExp(`\\b${escapeRegExp(characterName)}\\b`);
-            const containsCharacter = checkRegex.test(sentence); // Test on original sentence segment
+            const containsCharacter = checkRegex.test(sentence);
 
             let htmlEscapedSentence = sentence
                 .replace(/&/g, "&")
