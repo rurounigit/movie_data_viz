@@ -1,6 +1,3 @@
-// script.js - Full version with hover info panel, legend, dynamic settings.
-// Test
-
 // --- Global variables ---
 let allMoviesDataFromYaml = [];
 let characterNameToGlobalIdMap = {};
@@ -52,6 +49,8 @@ let physicsStopTimeout;
 
 // NEW: Global variable for storing the original formatted plot HTML for the current movie
 let formattedOriginalPlotHTML = '<p class="info-placeholder">Plot summary will appear here once a movie is selected.</p>';
+// NEW: Global variable for storing the raw (unformatted) plot text for highlighting logic
+let rawCurrentMoviePlot = '';
 
 
 // Helper function to get contrasting text color
@@ -273,8 +272,7 @@ function updateLegend() {
             currentGroupsInView.add(node.group);
         });
     }
-     // If no nodes, show placeholder, otherwise proceed
-    if (currentGroupsInView.size === 0 && allNodesDataSet.size() === 0) {
+    if (currentGroupsInView.size === 0 && allNodesDataSet.length === 0) {
         const placeholder = document.createElement('p');
         placeholder.className = 'info-placeholder';
         placeholder.textContent = 'No character groups to display.';
@@ -371,15 +369,12 @@ function updateHoverInfoPanel(itemData, type) {
         const parts = itemData.rawTooltipData.split('\n\n');
         if (parts.length > 1) {
             description = parts.slice(1).join('\n\n').trim();
-            // This specific check might need adjustment based on how the tooltipTextData is generated.
-            // If the description part strictly starts with "(Played by:", remove that line.
-            // Otherwise, keep the full description.
             if (description.startsWith("(Played by:")) {
                 const firstNewLineIndex = description.indexOf('\n');
                 if (firstNewLineIndex !== -1) {
                     description = description.substring(firstNewLineIndex + 1).trim();
                 } else {
-                    description = ''; // If "(Played by:" is the only content, clear it.
+                    description = '';
                 }
             }
         }
@@ -406,7 +401,6 @@ function updateHoverInfoPanel(itemData, type) {
             imagePanelDiv.style.marginBottom = '10px';
             imagePanelDiv.className = 'info-images-container';
 
-            // Image elements
             const actorImgElement = document.createElement('img');
             actorImgElement.alt = `Actor: ${itemData.actor_name || 'N/A'}`;
             actorImgElement.style.maxWidth = '80px';
@@ -415,7 +409,7 @@ function updateHoverInfoPanel(itemData, type) {
             actorImgElement.style.borderRadius = '4px';
             actorImgElement.style.backgroundColor = '#3a3f4b';
             actorImgElement.className = 'info-panel-image';
-            actorImgElement.style.display = 'none'; // Hide until loaded/attempted
+            actorImgElement.style.display = 'none';
 
             const charImgElement = document.createElement('img');
             charImgElement.alt = `Character: ${itemData.label || 'N/A'}`;
@@ -425,94 +419,70 @@ function updateHoverInfoPanel(itemData, type) {
             charImgElement.style.borderRadius = '4px';
             charImgElement.style.backgroundColor = '#3a3f4b';
             charImgElement.className = 'info-panel-image';
-            charImgElement.style.display = 'none'; // Hide until loaded/attempted
+            charImgElement.style.display = 'none';
 
             imagePanelDiv.appendChild(actorImgElement);
             imagePanelDiv.appendChild(charImgElement);
 
-
             let actorImageLoaded = false;
             let characterImageLoaded = false;
 
-            // Function to attempt loading image with multiple extensions
             const tryLoadImageWithExtensions = (imgElement, filenamePrefix, extensions, callback) => {
                 let currentExtensionIndex = 0;
                 const attemptLoad = () => {
                     if (currentExtensionIndex < extensions.length) {
                         const testSrc = `${IMAGE_BASE_PATH}${filenamePrefix}${extensions[currentExtensionIndex]}`;
-                        imgElement.src = testSrc; // Set src to trigger load/error
-                        imgElement.onload = () => {
-                            imgElement.style.display = 'block'; // Show if loaded
-                            callback(true); // Indicate success
-                        };
-                        imgElement.onerror = () => {
-                            currentExtensionIndex++;
-                            attemptLoad(); // Try next extension
-                        };
+                        imgElement.src = testSrc;
+                        imgElement.onload = () => { imgElement.style.display = 'block'; callback(true); };
+                        imgElement.onerror = () => { currentExtensionIndex++; attemptLoad(); };
                     } else {
-                        // All extensions tried, image not found
-                        imgElement.style.display = 'none'; // Ensure hidden
-                        callback(false); // Indicate failure
+                        imgElement.style.display = 'none'; callback(false);
                     }
                 };
                 attemptLoad();
             };
 
-            // Trigger loading for Actor Image
+            const updateImagePanelVisibility = () => {
+                if (actorImageLoaded || characterImageLoaded) {
+                    imagePanelDiv.style.display = 'flex';
+                } else {
+                    imagePanelDiv.style.display = 'none';
+                }
+            };
+
+            let actorAttemptDone = !itemData.tmdb_person_id;
+            let charAttemptDone = (!itemData.tmdb_person_id && !itemData.label) || (!itemData.label);
+
+
             if (itemData.tmdb_person_id) {
-                const actorFilename = itemData.tmdb_person_id; // Actor image is just ID
+                const actorFilename = itemData.tmdb_person_id;
                 tryLoadImageWithExtensions(actorImgElement, actorFilename, COMMON_IMAGE_EXTENSIONS, (success) => {
-                    actorImageLoaded = success;
-                    // Only update panel visibility once both types of images have finished their load attempts
-                    if ((!itemData.label || characterImgElement.src) || !itemData.tmdb_person_id) { // Character image already attempted or not applicable
-                        if (actorImageLoaded || characterImageLoaded) {
-                            imagePanelDiv.style.display = 'flex';
-                        } else {
-                            imagePanelDiv.style.display = 'none';
-                        }
-                    }
+                    actorImageLoaded = success; actorAttemptDone = true;
+                    if(charAttemptDone) updateImagePanelVisibility();
                 });
-            } else {
-                actorImgElement.style.display = 'none'; // No TMDB ID, so no actor image
             }
 
-            // Trigger loading for Character Image
             if (itemData.tmdb_person_id && itemData.label) {
-                const charFilename = `${itemData.tmdb_person_id}_char_${slugify(itemData.label)}_1`; // _1 for the first image
+                const charFilename = `${itemData.tmdb_person_id}_char_${slugify(itemData.label)}_1`;
                 tryLoadImageWithExtensions(charImgElement, charFilename, COMMON_IMAGE_EXTENSIONS, (success) => {
-                    characterImageLoaded = success;
-                    // Only update panel visibility once both types of images have finished their load attempts
-                    if ((!itemData.tmdb_person_id || actorImgElement.src) || !itemData.label) { // Actor image already attempted or not applicable
-                        if (actorImageLoaded || characterImageLoaded) {
-                            imagePanelDiv.style.display = 'flex';
-                        } else {
-                            imagePanelDiv.style.display = 'none';
-                        }
-                    }
+                    characterImageLoaded = success; charAttemptDone = true;
+                    if(actorAttemptDone) updateImagePanelVisibility();
                 });
-            } else if (itemData.label) { // No TMDB ID, but character name for fallback search
+            } else if (itemData.label) {
                 const charFilename = `${slugify(itemData.label)}_char_unknown_id_1`;
                 tryLoadImageWithExtensions(charImgElement, charFilename, COMMON_IMAGE_EXTENSIONS, (success) => {
-                    characterImageLoaded = success;
-                    if ((!itemData.tmdb_person_id || actorImgElement.src) || !itemData.label) {
-                        if (actorImageLoaded || characterImageLoaded) {
-                            imagePanelDiv.style.display = 'flex';
-                        } else {
-                            imagePanelDiv.style.display = 'none';
-                        }
-                    }
+                    characterImageLoaded = success; charAttemptDone = true;
+                    if(actorAttemptDone) updateImagePanelVisibility();
                 });
-            } else {
-                 charImgElement.style.display = 'none'; // No character name, so no character image
             }
 
-            panel.appendChild(imagePanelDiv); // Append container
-            // Initial visibility based on what's available
-            if ((itemData.tmdb_person_id && itemData.label) || (itemData.tmdb_person_id && !itemData.label) || (!itemData.tmdb_person_id && itemData.label)) {
-                 imagePanelDiv.style.display = 'flex'; // Assume flex initially, let callbacks hide if nothing loads
-            } else {
-                 imagePanelDiv.style.display = 'none'; // No IDs or names, so no images to try
+            panel.appendChild(imagePanelDiv);
+            if (!actorAttemptDone || !charAttemptDone) { // If any attempt is pending initially hide.
+                 imagePanelDiv.style.display = 'none';
+            } else { // If all attempts are done (e.g. no ids/names), update visibility
+                 updateImagePanelVisibility();
             }
+
 
         }
 
@@ -562,12 +532,12 @@ function addInfoItem(panel, key, value, isBlockValue = false) {
     panel.appendChild(itemDiv);
 }
 
-// NEW: Helper function to escape special characters for regex
+// Helper function to escape special characters for regex
 function escapeRegExp(string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-// NEW: Function to display plot summary and manage its title
+// Function to display plot summary and manage its title
 function displayPlotInPanel(htmlContentForPlotArea) {
     const plotPanel = document.getElementById('plotSummaryPanel');
     if (!plotPanel) return;
@@ -575,9 +545,8 @@ function displayPlotInPanel(htmlContentForPlotArea) {
     let titleElement = plotPanel.querySelector('h3.plot-title');
     if (!titleElement) {
         titleElement = document.createElement('h3');
-        titleElement.className = 'plot-title'; // Added class for specific selection
+        titleElement.className = 'plot-title';
         titleElement.textContent = 'Plot Summary';
-        // Style H3 consistently with other panels
         titleElement.style.marginTop = '0';
         titleElement.style.marginBottom = '10px';
         titleElement.style.fontSize = '1.1em';
@@ -591,24 +560,97 @@ function displayPlotInPanel(htmlContentForPlotArea) {
     if (!contentDiv) {
         contentDiv = document.createElement('div');
         contentDiv.className = 'plot-content-area';
-        plotPanel.appendChild(contentDiv); // Append after the title
+        plotPanel.appendChild(contentDiv);
     }
     contentDiv.innerHTML = htmlContentForPlotArea;
 }
 
-// NEW: Function to highlight character name in the plot
+// Helper function to apply character name highlighting within a text string
+function highlightCharacterNameInText(text, characterName) {
+    const escapedName = escapeRegExp(characterName);
+    const regex = new RegExp(`\\b${escapedName}\\b`, 'g');
+    return text.replace(regex, match => `<span class="highlighted-character">${match}</span>`);
+}
+
+/**
+ * Helper to split a line of text into sentences.
+ * @param {string} line - A single line of text (no \n characters).
+ * @returns {string[]} An array of sentences.
+ */
+function splitLineIntoSentences(line) {
+    if (!line || !line.trim()) return [];
+    // Regex to find sentences: captures text ending in punctuation, or the last bit of text.
+    // It tries to include the punctuation and any trailing spaces with the sentence.
+    const sentenceRegex = /[^.!?]+(?:[.!?](?=\s|$)|[.!?]$)?\s*|[^.!?\s]+(?:[.!?](?=\s|$)|[.!?]$)?/g;
+    let matches = line.match(sentenceRegex);
+    return matches ? matches.filter(s => s.trim() !== '') : [];
+}
+
+
+// Function to highlight character name and containing sentences in the plot
 function highlightCharacterInPlot(characterName) {
-    if (!formattedOriginalPlotHTML || !characterName) {
-        displayPlotInPanel(formattedOriginalPlotHTML); // Display original if no name or no base plot
+    if (!rawCurrentMoviePlot || !characterName) {
+        displayPlotInPanel(formattedOriginalPlotHTML); // Use pre-formatted HTML
         return;
     }
-    const escapedName = escapeRegExp(characterName);
-    // Case-sensitive global replacement of the exact character name string
-    const regex = new RegExp(escapedName, 'g');
-    const highlightedHTML = formattedOriginalPlotHTML.replace(regex,
-        match => `<span class="highlighted-character">${match}</span>`
-    );
-    displayPlotInPanel(highlightedHTML);
+
+    let finalHighlightedHtml = "";
+    const lines = rawCurrentMoviePlot.split('\n');
+
+    lines.forEach((line, lineIndex) => {
+        if (lineIndex > 0) {
+            finalHighlightedHtml += "<br>"; // Add <br> for newlines between original lines
+        }
+
+        // If the line is empty or only whitespace, it's handled by the <br> above or will be empty.
+        if (!line.trim()) {
+            // If the original line had spaces, preserve them (though usually a <br> handles visual break)
+            // finalHighlightedHtml += line; // This might add unnecessary whitespace.
+                                         // The <br> usually suffices.
+            return; // Continue to next line
+        }
+
+        const sentences = splitLineIntoSentences(line);
+
+        if (!sentences || sentences.length === 0) {
+            // This case handles lines that are not empty but don't split into sentences (e.g., just "..." or a title)
+            // Or if splitLineIntoSentences returns an empty array for a non-empty line (should be rare with current regex)
+            let htmlEscapedLine = line
+                .replace(/&/g, "&")
+                .replace(/</g, "<")
+                .replace(/>/g, ">");
+            let lineWithCharHighlight = highlightCharacterNameInText(htmlEscapedLine, characterName);
+
+            const checkRegex = new RegExp(`\\b${escapeRegExp(characterName)}\\b`);
+            if (checkRegex.test(line)) { // Check original line for character presence
+                finalHighlightedHtml += `<span class="sentence-highlight">${lineWithCharHighlight}</span>`;
+            } else {
+                finalHighlightedHtml += lineWithCharHighlight;
+            }
+            return; // Continue to next line
+        }
+
+        sentences.forEach((sentence) => {
+            if (!sentence.trim()) return; // Should be filtered by splitLineIntoSentences, but good practice
+
+            const checkRegex = new RegExp(`\\b${escapeRegExp(characterName)}\\b`);
+            const containsCharacter = checkRegex.test(sentence); // Test on original sentence segment
+
+            let htmlEscapedSentence = sentence
+                .replace(/&/g, "&")
+                .replace(/</g, "<")
+                .replace(/>/g, ">");
+
+            let sentenceWithCharHighlight = highlightCharacterNameInText(htmlEscapedSentence, characterName);
+
+            if (containsCharacter) {
+                finalHighlightedHtml += `<span class="sentence-highlight">${sentenceWithCharHighlight}</span>`;
+            } else {
+                finalHighlightedHtml += sentenceWithCharHighlight;
+            }
+        });
+    });
+    displayPlotInPanel(finalHighlightedHtml);
 }
 
 
@@ -631,32 +673,34 @@ function updateNetworkForMovie(selectedMovieTitle) {
             );
 
             if (selectedMovieData.plot_with_character_constraints_and_relations) {
-                const rawPlotText = selectedMovieData.plot_with_character_constraints_and_relations;
-                // Escape HTML special characters and convert newlines for display
-                formattedOriginalPlotHTML = rawPlotText
-                    .replace(/&/g, "&") // Must be first, convert & before others
+                rawCurrentMoviePlot = selectedMovieData.plot_with_character_constraints_and_relations;
+                formattedOriginalPlotHTML = rawCurrentMoviePlot
+                    .replace(/&/g, "&")
                     .replace(/</g, "<")
                     .replace(/>/g, ">")
                     .replace(/\n/g, "<br>");
             } else {
+                rawCurrentMoviePlot = '';
                 formattedOriginalPlotHTML = '<p class="info-placeholder">Plot summary not available for this movie.</p>';
             }
-        } else { // Movie title selected, but no data found in allMoviesDataFromYaml
+        } else {
             currentNodesFromMaster = [];
             currentEdgesFromMaster = [];
+            rawCurrentMoviePlot = '';
             formattedOriginalPlotHTML = `<p class="info-placeholder" style="color: #ffcc00;">Plot summary not available: Data for "${selectedMovieTitle}" could not be loaded.</p>`;
             console.warn(`Data for movie "${selectedMovieTitle}" not found in allMoviesDataFromYaml.`);
         }
-    } else { // No movie selected or "No movies available" state from selector
+    } else {
         currentNodesFromMaster = [];
         currentEdgesFromMaster = [];
+        rawCurrentMoviePlot = '';
         if (selectedMovieTitle === "No movies available") {
             formattedOriginalPlotHTML = '<p class="info-placeholder">No plot summary as no movies are available in the database.</p>';
-        } else { // Catch-all for empty/invalid selection
+        } else {
             formattedOriginalPlotHTML = '<p class="info-placeholder">Select a movie to see the plot summary.</p>';
         }
     }
-    displayPlotInPanel(formattedOriginalPlotHTML); // Update the plot panel content
+    displayPlotInPanel(formattedOriginalPlotHTML);
 
     const nodeDegrees = {};
     currentNodesFromMaster.forEach(node => { nodeDegrees[node.id] = 0; });
@@ -816,23 +860,23 @@ function updateNetworkForMovie(selectedMovieTitle) {
         allNodesDataSet.add(processedNodes);
         allEdgesDataSet.add(processedEdges);
         allEdgesDataSet.add(helperClusteringEdges);
-        if (processedNodes.length > 0) { // Only enable physics if there are nodes
+        if (processedNodes.length > 0) {
             network.setOptions({ physics: { enabled: true } });
-            network.stabilize(1500); // Stabilize only if physics enabled
+            network.stabilize(1500);
         } else {
-            network.setOptions({ physics: { enabled: false } }); // Ensure physics is off for empty graph
+            network.setOptions({ physics: { enabled: false } });
         }
     }
 
     clearTimeout(physicsStopTimeout);
-    if (processedNodes.length > 0) { // Only set timeout if there are nodes and physics might be running
+    if (processedNodes.length > 0) {
         physicsStopTimeout = setTimeout(stopPhysics, processedNodes.length > 100 ? 20000 : 10000);
         if (network) network.fit();
     }
 
 
     updateLegend();
-    updateHoverInfoPanel(null); // Clear hover panel on network update
+    updateHoverInfoPanel(null);
 }
 
 function stopPhysics() {
@@ -937,13 +981,13 @@ function setupNetworkEventListeners() {
         const nodeData = allNodesDataSet.get(nodeId);
         if (nodeData) {
             updateHoverInfoPanel(nodeData, 'node');
-            highlightCharacterInPlot(nodeData.label); // HIGHLIGHT PLOT
+            highlightCharacterInPlot(nodeData.label);
         }
     });
 
     network.on("blurNode", function (params) {
         updateHoverInfoPanel(null);
-        displayPlotInPanel(formattedOriginalPlotHTML); // RESET PLOT HIGHLIGHT
+        displayPlotInPanel(formattedOriginalPlotHTML);
     });
 
     network.on("hoverEdge", function (params) {
@@ -978,7 +1022,7 @@ async function main() {
 
         const initialMovie = document.getElementById('movieSelector').value;
         if (initialMovie && initialMovie !== "No movies available") {
-            updateNetworkForMovie(initialMovie); // This will also update the plot panel
+            updateNetworkForMovie(initialMovie);
         } else if (initialMovie === "No movies available") {
             console.log("No movies available to display.");
             const container = document.getElementById('mynetwork');
@@ -987,8 +1031,8 @@ async function main() {
             }
             updateLegend();
             updateHoverInfoPanel(null);
-            // Explicitly set and display plot for "No movies" state
             formattedOriginalPlotHTML = '<p class="info-placeholder">No plot summary as no movies are available in the database.</p>';
+            rawCurrentMoviePlot = '';
             displayPlotInPanel(formattedOriginalPlotHTML);
         }
 
@@ -1000,10 +1044,10 @@ async function main() {
         if (container) {
             container.innerHTML = `<p style="color:red; text-align:center; padding: 20px;">Error loading movie data: ${error.message}.<br>Please ensure 'clean_movie_database.yaml' is in the same folder and check the console for more details.</p>`;
         }
-        // Update other panels to reflect error state
-        updateLegend(); // Will show empty state
+        updateLegend();
         updateHoverInfoPanel(null);
         formattedOriginalPlotHTML = `<p class="info-placeholder" style="color:red;">Plot not available due to data loading error: ${error.message}</p>`;
+        rawCurrentMoviePlot = '';
         displayPlotInPanel(formattedOriginalPlotHTML);
     }
 }

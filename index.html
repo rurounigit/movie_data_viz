@@ -172,15 +172,26 @@
         /* If #plotSummaryPanel has padding, this might not need much */
     }
 
-    /* NEW: CSS for highlighting character names in plot */
+    /* UPDATED: CSS for highlighting character names in plot */
+    /* This class will now only bold/color the character name *within* a highlighted sentence, without causing shifting. */
     .highlighted-character {
-        background-color: #61afef; /* A distinct highlight color */
-        color: #282c34;      /* Contrasting text color */
-        font-weight: bold;
-        padding: 1px 4px;
-        border-radius: 3px;
-        box-decoration-break: clone; /* Ensures background/padding behaves well across line breaks */
-        -webkit-box-decoration-break: clone;
+        background-color: transparent; /* Ensure no background here, it's for .sentence-highlight */
+        color: #ffffff; /* A slightly brighter text color for the character name */
+
+        /* Removed padding, border-radius, box-decoration-break from previous version */
+    }
+
+    /* UPDATED: CSS for highlighting the entire sentence */
+    /* REMOVED VERTICAL PADDING to prevent line shifting! */
+    #plotSummaryPanel .sentence-highlight { /* Added #plotSummaryPanel to make it more specific */
+        background-color: rgba(97, 175, 239, 0.15); /* A lighter, more subtle highlight for the whole sentence */
+        color: #ffffff; /* Inherit the main text color of the plot panel */
+        border-radius: 0px;
+        padding: 0 0px; /* ONLY horizontal padding to avoid vertical shifting */
+        /* The line-height property of the parent (.plot-content-area or #plotSummaryPanel) should control the overall line spacing. */
+        /* box-decoration-break: clone; /* Ensures background/padding behaves well across line breaks */
+        /* -webkit-box-decoration-break: clone; */
+        /* display: inline; /* Keeps the highlight inline so it flows with the text */
     }
 
 
@@ -211,9 +222,9 @@
     .vis-network .vis-navigation .vis-button.vis-zoomOut:hover,
     .vis-network .vis-navigation .vis-button.vis-zoomExtends:hover,
     .vis-network .vis-navigation .vis-button.vis-up:hover,
-    .vis-network .vis-navigation .vis-button.vis-down:hover,
-    .vis-network .vis-navigation .vis-button.vis-left:hover,
-    .vis-network .vis-navigation .vis-button.vis-right:hover {
+    .vis-network .vis-navigation .vis-down:hover,
+    .vis-network .vis-navigation .vis-left:hover,
+    .vis-network .vis-navigation .vis-right:hover {
         filter: brightness(0) invert(1) drop-shadow(0 0 1px #61afef);
     }
 
