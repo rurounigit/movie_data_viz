@@ -5,20 +5,31 @@
   <br>
 </p>
 
-An interactive web application to visualize and explore character relationships within movies. It loads movie data, including characters, their descriptions, and the relationships between them, from a YAML file and renders an interactive network graph using Vis.js. Users can select a movie from a dropdown, hover over characters and relationships for detailed information, and see dynamic highlighting of characters within the plot summary.
+Uncover the intricate web of connections that drive your favorite movie narratives with the **Movie Character Relationship Network**. This interactive web application transforms raw movie data—including characters, their descriptions, and the relationships between them—into a dynamic, intuitive network graph. Powered by Vis.js, it allows users to effortlessly select a movie, explore the detailed connections, gain new perspectives on familiar plots, and reveal previously unseen insights into character dynamics.
 
 ## ✨ Features
 
-*   **Interactive Network Visualization:** Built with [Vis.js Network](https://visjs.github.io/vis-network/docs/network/) for a dynamic and engaging graph experience.
-*   **Dynamic Movie Selection:** Choose from a list of movies loaded from your data source to explore different relationship networks.
+*   **Interactive Network Visualization:** Built with [Vis.js Network](https://visjs.github.io/vis-network/docs/network/), it offers a **dynamic, intuitive, and engaging** way to explore character networks.
+*   **Dynamic Movie Selection:** Seamlessly **switch between movies** to explore diverse narrative structures and character interactions.
 *   **Detailed Hover Information:**
     *   **Characters:** Hover over a node to see the character's name, actor, group, detailed description, and associated images (actor and character-specific).
     *   **Relationships:** Hover over an edge to view its type, strength, sentiment (e.g., positive, negative, complicated), specific description, and a potential illustrative image for the relationship.
-*   **Dynamic Legend:** Automatically updates to show the character groups and relationship sentiments present in the currently selected movie's network.
-*   **Plot Summary Panel:** Displays the plot synopsis for the selected movie, with an intelligent highlighting feature that emphasizes character names as you hover over their corresponding nodes in the network.
-*   **Physics-Based Layout:** The graph uses a force-directed layout that simulates physical forces, providing an organic and easy-to-understand arrangement of nodes.
-*   **Responsive Design:** Adapts to various screen sizes for a consistent user experience.
-*   **Customizable Styling:** Nodes and edges are styled dynamically based on their properties (e.g., size based on connections, color based on group/sentiment, font size based on importance).
+*   **Dynamic Legend:** Provides a **clear, context-aware legend** that adapts to the selected movie, making group identification and sentiment analysis effortless.
+*   **Plot Summary Panel:** Offers an **integrated plot summary** that intelligently highlights character names as you hover over their network nodes. This feature **bridges the visual and textual narratives**, offering a deeper, synchronized understanding of character relevance within the story.
+*   **Physics-Based Layout:** Leverages a **physics-based force-directed layout** for an organic and naturally organized arrangement of nodes, making complex networks **easy to interpret at a glance**.
+*   **Responsive Design:** Ensures a **consistent and optimized experience** across desktops, tablets, and mobile devices.
+*   **Intelligent Styling:** Utilizes **dynamic styling** (e.g., node size by connections, color by group, edge thickness by strength, color by sentiment) to provide **immediate visual cues** about character importance, affiliations, and relationship types.
+
+## 💡 Unlocking Deeper Insights
+
+This application isn't just about presenting data; it's about **transforming information into understanding**. By visualizing movie character relationships, you can:
+
+*   **Quickly Grasp Complexity:** Instantly perceive the intricate web of connections that might be hard to piece together from a text-based plot summary.
+*   **Identify Key Players:** Observe which characters are central to the narrative by their number of connections and influence.
+*   **Spot Patterns & Factions:** Easily recognize groups, alliances, and conflicts through color-coding and clustering.
+*   **Gain New Perspectives:** Re-experience familiar movie plots with a fresh, analytical lens, revealing hidden dynamics and narrative structures.
+
+It's a powerful tool for film enthusiasts, analysts, or anyone curious about the unseen architecture of storytelling.
 
 ## 🚀 Technologies Used
 
@@ -102,42 +113,61 @@ The application expects its movie data in a YAML file named `clean_movie_databas
       sentiment: "negative"
       description: "They have a strained relationship due to past betrayals."
 # ... more movies, characters, and relationships
-```
 
-## 🖼️ Image Assets (`output/character_images/`)
+🖼️ Image Assets (output/character_images/)
 
-The application attempts to load character, actor, and relationship images for the info panel. These images should be placed in the `output/character_images/` directory.
+The application attempts to load character, actor, and relationship images for the info panel. These images should be placed in the output/character_images/ directory.
 
-*   **Actor Images:** Should be named after the `tmdb_person_id` found in the YAML.
-    *   Example: `123456.jpg`, `789012.png`
-*   **Character-Specific Images:** Should follow a specific naming convention:
-    *   `[tmdb_person_id]_char_[slugified_character_name]_[index].(ext)`
-        *   `[slugified_character_name]` is a lowercase, hyphen-separated version of the character's name (e.g., "character-a").
-        *   `[index]` is usually `1` for the first image.
-    *   Example: `123456_char_character-a_1.png`
-*   **Fallback Character Images:** If a character has no `tmdb_person_id`, the application will try to load `[slugified_character_name]_char_unknown_id_[index].(ext)`.
-*   **Relationship Images:** Images illustrating a relationship can be displayed in the "Relationship Details" panel. The application will attempt to load an image based on the names of the two characters involved in the relationship.
-    *   Naming convention: `rel_[slugified_source_name]_[slugified_target_name]_[index].(ext)` or `rel_[slugified_target_name]_[slugified_source_name]_[index].(ext)`
-        *   `[slugified_source_name]` and `[slugified_target_name]` are the slugified names of the characters in the relationship.
-        *   The script tries both orders (source-target and target-source) for the filename.
-        *   `[index]` is typically `1`.
-    *   Example: For a relationship between "Hikokuro Omodaka" and "Hanshiro Tsugumo", the script would look for:
-        *   `rel_hikokuro-omodaka_hanshiro-tsugumo_1.jpg` (or .png, .jpeg, .webp)
-        *   OR `rel_hanshiro-tsugumo_hikokuro-omodaka_1.jpg` (or .png, .jpeg, .webp)
+Actor Images: Should be named after the tmdb_person_id found in the YAML.
 
-Supported image extensions (in order of preference): `.jpg`, `.png`, `.jpeg`, `.webp`.
+Example: 123456.jpg, 789012.png
 
-## 🤝 Contributing
+Character-Specific Images: Should follow a specific naming convention:
+
+[tmdb_person_id]_char_[slugified_character_name]_[index].(ext)
+
+[slugified_character_name] is a lowercase, hyphen-separated version of the character's name (e.g., "character-a").
+
+[index] is usually 1 for the first image.
+
+Example: 123456_char_character-a_1.png
+
+Fallback Character Images: If a character has no tmdb_person_id, the application will try to load [slugified_character_name]_char_unknown_id_[index].(ext).
+
+Relationship Images: Images illustrating a relationship can be displayed in the "Relationship Details" panel. The application will attempt to load an image based on the names of the two characters involved in the relationship.
+
+Naming convention: rel_[slugified_source_name]_[slugified_target_name]_[index].(ext) or rel_[slugified_target_name]_[slugified_source_name]_[index].(ext)
+
+[slugified_source_name] and [slugified_target_name] are the slugified names of the characters in the relationship.
+
+The script tries both orders (source-target and target-source) for the filename.
+
+[index] is typically 1.
+
+Example: For a relationship between "Hikokuro Omodaka" and "Hanshiro Tsugumo", the script would look for:
+
+rel_hikokuro-omodaka_hanshiro-tsugumo_1.jpg (or .png, .jpeg, .webp)
+
+OR rel_hanshiro-tsugumo_hikokuro-omodaka_1.jpg (or .png, .jpeg, .webp)
+
+Supported image extensions (in order of preference): .jpg, .png, .jpeg, .webp.
+
+🤝 Contributing
 
 Contributions are welcome! If you have suggestions for improvements, new features, or bug fixes, please feel free to:
 
-1.  Fork the repository.
-2.  Create a new branch (`git checkout -b feature/your-feature`).
-3.  Make your changes.
-4.  Commit your changes (`git commit -m 'Add new feature'`).
-5.  Push to the branch (`git push origin feature/your-feature`).
-6.  Open a Pull Request.
+Fork the repository.
 
-## 📄 License
+Create a new branch (git checkout -b feature/your-feature).
 
-Apache 2.0
+Make your changes.
+
+Commit your changes (git commit -m 'Add new feature').
+
+Push to the branch (git push origin feature/your-feature).
+
+Open a Pull Request.
+
+📄 License
+
+MIT
