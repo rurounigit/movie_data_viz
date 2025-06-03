@@ -1,6 +1,4 @@
 // js/networkManager.js
-// Assuming vis is globally available from <script src="...vis-network.min.js"></script>
-
 import * as config from './config.js';
 import * as utils from './utils.js';
 import * as ui from './uiUpdater.js';
@@ -64,7 +62,8 @@ function _createVisEdge(masterEdge, edgeVisIdCounter) {
     };
 }
 
-export function updateNetworkForMovie(selectedMovieTitle, globalNodes, globalEdges, allMovieData) {
+export function updateNetworkForMovie(selectedMovieTitle, globalNodes, globalEdges, allMovieData,
+                                    onLegendItemClickCallback, onLegendItemHoverCallback, onLegendItemBlurCallback) {
     console.log(`Updating network for: ${selectedMovieTitle}`);
     let currentNodesFromMaster = [];
     let currentEdgesFromMaster = [];
@@ -121,7 +120,6 @@ export function updateNetworkForMovie(selectedMovieTitle, globalNodes, globalEdg
 
     network.setOptions({ physics: { enabled: processedNodes.length > 0 } });
 
-    // Re-introduced explicit stabilize call from original script for updates
     if (processedNodes.length > 0) {
         console.log("Forcing stabilization on update as per original script logic.");
         network.stabilize(1500);
@@ -135,7 +133,7 @@ export function updateNetworkForMovie(selectedMovieTitle, globalNodes, globalEdg
         stopPhysics();
     }
 
-    ui.updateLegend(allNodesDataSet, allEdgesDataSet);
+    ui.updateLegend(allNodesDataSet, allEdgesDataSet, onLegendItemClickCallback, onLegendItemHoverCallback, onLegendItemBlurCallback);
     ui.updateHoverInfoPanel(null, null, allNodesDataSet);
 }
 
@@ -147,6 +145,7 @@ export function stopPhysics() {
 }
 
 export function resetAllHighlights() {
+    ui.clearLegendHighlights();
     if (!allNodesDataSet || !allEdgesDataSet || !network) return;
     const nodeUpdates = allNodesDataSet.map(n => ({
         id: n.id,
@@ -163,6 +162,61 @@ export function resetAllHighlights() {
             font: { ...e.font, size: utils.calculateEdgeFontSize(e.strength) }
         }));
     if (edgeUpdates.length > 0) allEdgesDataSet.update(edgeUpdates);
+}
+
+export function highlightNodesByGroup(groupName, doHighlight = true) {
+    if (!allNodesDataSet || !network) return;
+    const nodeUpdates = [];
+    let groupIsSelected = false;
+    const selectedLegendItem = document.querySelector(`#legend .legend-item.selected[data-group-name="${groupName}"]`);
+    if (selectedLegendItem) {
+        groupIsSelected = true;
+    }
+
+    allNodesDataSet.forEach(node => {
+        if (node.group === groupName) {
+            if (doHighlight) {
+                nodeUpdates.push({
+                    id: node.id,
+                    color: { ...node.color, border: config.nodeHighlightBorderColor }, // Standard highlight border
+                    borderWidth: config.nodeHighlightBorderWidth + 0.5 // Slightly different for hover emphasis
+                });
+            } else { // Resetting from hover
+                if (groupIsSelected) { // If the group is selected, revert to selected style
+                    nodeUpdates.push({
+                        id: node.id,
+                        color: { ...node.color, border: config.nodeHighlightBorderColor },
+                        borderWidth: config.nodeHighlightBorderWidth
+                    });
+                } else { // Not selected, revert to original
+                    nodeUpdates.push({
+                        id: node.id,
+                        color: { ...node.color, border: node.originalColorObject.border },
+                        borderWidth: config.nodeDefaultBorderWidth
+                    });
+                }
+            }
+        }
+    });
+    if (nodeUpdates.length > 0) allNodesDataSet.update(nodeUpdates);
+}
+
+export function selectAndHighlightGroup(groupName) {
+    if (!allNodesDataSet || !network) return;
+    resetAllHighlights();
+
+    const nodeUpdates = [];
+    allNodesDataSet.forEach(node => {
+        if (node.group === groupName) {
+            nodeUpdates.push({
+                id: node.id,
+                color: { background: node.originalColorObject.background, border: config.nodeHighlightBorderColor },
+                borderWidth: config.nodeHighlightBorderWidth
+            });
+        }
+    });
+    if (nodeUpdates.length > 0) allNodesDataSet.update(nodeUpdates);
+    ui.highlightLegendItemGroup(groupName, 'selected');
 }
 
 function _setupNetworkEventListeners(onNodeHoverCb, onNodeBlurCb, onEdgeHoverCb, onEdgeBlurCb, onNetworkClickCb, onPlotHighlightRequestCb) {
@@ -182,12 +236,12 @@ function _setupNetworkEventListeners(onNodeHoverCb, onNodeBlurCb, onEdgeHoverCb,
     network.on("hoverNode", function (params) {
         const nodeData = allNodesDataSet.get(params.node);
         if (nodeData) {
-            onNodeHoverCb(nodeData);
+            onNodeHoverCb(nodeData); // This will call main.js handler
             if (onPlotHighlightRequestCb) onPlotHighlightRequestCb(nodeData.label);
         }
     });
     network.on("blurNode", function (params) {
-        onNodeBlurCb();
+        onNodeBlurCb(params.node); // Pass node ID for context if needed in main.js
         if (onPlotHighlightRequestCb) onPlotHighlightRequestCb(null);
     });
     network.on("hoverEdge", function (params) {
@@ -204,22 +258,18 @@ function _setupNetworkEventListeners(onNodeHoverCb, onNodeBlurCb, onEdgeHoverCb,
 export function initNetwork(containerId, onNodeHoverCb, onNodeBlurCb, onEdgeHoverCb, onEdgeBlurCb, onNetworkClickCb, onPlotHighlightRequestCb) {
     const container = document.getElementById(containerId);
     if (!container) {
-        console.error(`Network container with ID '${containerId}' not found.`);
-        return;
+        console.error(`Network container with ID '${containerId}' not found.`); return;
     }
     const data = { nodes: allNodesDataSet, edges: allEdgesDataSet };
-
     const options = {
         nodes: {
             font: { color: '#abb2bf', face: 'Roboto, sans-serif', background: 'rgba(40,44,52,0.7)', strokeWidth: 0 },
             scaling: { min: config.minNodeSize, max: config.maxNodeSize, label: { enabled: true, min: config.minNodeLabelSize, max: config.maxNodeLabelSize+4 }},
             shadow: {enabled:true,color:'rgba(0,0,0,0.4)',size:7,x:3,y:3},
             chosen: {
-                // Corrected chosen.node function
                 node: (values, id, selected, hovering) => {
                     const n = allNodesDataSet.get(id);
                     if (!n) return;
-
                     if (selected || hovering) {
                         values.borderColor = config.nodeHighlightBorderColor;
                         values.borderWidth = config.nodeHighlightBorderWidth;
@@ -234,48 +284,26 @@ export function initNetwork(containerId, onNodeHoverCb, onNodeBlurCb, onEdgeHove
                         const bf=utils.calculateNodeFontSize(n.degree);
                         if(hovering || selected) {
                             values.size=Math.min(bf+4, config.maxNodeLabelSize+2);
-                        } else {
-                            values.size=bf;
-                        }
-                    }
-                }
+                        } else { values.size=bf; } } }
             }
         },
         edges: {
             font: { color: '#abb2bf', face: 'Roboto, sans-serif', background: 'rgba(40,44,52,0.7)', strokeWidth: 0, align: 'middle'},
-            arrows:{to:{enabled:false}},
-            smooth:{enabled:true,type:'dynamic',roundness:0.3},
+            arrows:{to:{enabled:false}}, smooth:{enabled:true,type:'dynamic',roundness:0.3},
             chosen:{
                 edge:(values,id,selected,hovering)=>{
                     const e=allEdgesDataSet.get(id);
-                    if(e&&!e.hidden){
-                        if(hovering || selected){
-                            values.width=e.originalWidth*1.8;
-                        } else{
-                            values.width=e.originalWidth;
-                        }
-                    }
-                },
+                    if(e&&!e.hidden){ if(hovering || selected){ values.width=e.originalWidth*1.8; } else{ values.width=e.originalWidth; } } },
                 label:(values,id,selected,hovering)=>{
                     const e=allEdgesDataSet.get(id);
-                    if(e&&!e.hidden){
-                        const bf=utils.calculateEdgeFontSize(e.strength);
-                        if(hovering || selected){
-                            values.size=Math.min(bf+3, config.maxEdgeLabelSize+2);
-                        } else{
-                            values.size=bf;
-                        }
-                    }
-                }
+                    if(e&&!e.hidden){ const bf=utils.calculateEdgeFontSize(e.strength); if(hovering || selected){ values.size=Math.min(bf+3, config.maxEdgeLabelSize+2); } else{ values.size=bf; } } }
             },
             color:{opacity:0.8}
         },
         physics: {
             enabled:true,solver:'forceAtlas2Based',
             forceAtlas2Based:{gravitationalConstant:-70,centralGravity:0.01,springLength:80,springConstant:0.07,damping:0.5,avoidOverlap:0.15},
-            maxVelocity:40,minVelocity:0.1,
-            stabilization:{enabled:true,iterations:1500,updateInterval:25,fit:true},
-            adaptiveTimestep:true
+            maxVelocity:40,minVelocity:0.1, stabilization:{enabled:true,iterations:1500,updateInterval:25,fit:true}, adaptiveTimestep:true
         },
         interaction:{
             hover:true,hoverConnectedEdges:false,tooltipDelay:200,navigationButtons:true,keyboard:true,
@@ -283,7 +311,6 @@ export function initNetwork(containerId, onNodeHoverCb, onNodeBlurCb, onEdgeHove
         },
         layout: {}
     };
-
     network = new vis.Network(container, data, options);
     _setupNetworkEventListeners(onNodeHoverCb, onNodeBlurCb, onEdgeHoverCb, onEdgeBlurCb, onNetworkClickCb, onPlotHighlightRequestCb);
 }

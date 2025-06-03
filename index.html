@@ -210,6 +210,53 @@
         opacity: 0.5; /* Adjust opacity as desired */
         /* color: #7f848e; */ /* Alternative: change color to a lighter grey */
         transition: opacity 0.5s ease, color 0.5s ease; /* Optional: for smooth transitions */
+    }
+
+    .legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    padding: 4px 6px; /* Add some padding for hover/selection background */
+    border-radius: 4px; /* Rounded corners for hover/selection background */
+    transition: background-color 0.2s ease, border 0.2s ease, box-shadow 0.2s ease; /* Smooth transitions */
+    border: 1px solid transparent; /* Placeholder for selected border, initially transparent */
+    cursor: pointer; /* Indicates interactivity for group items */
+    }
+
+    .legend-item[data-group-name]:hover {
+    background-color: #3a3f4b; /* Slightly lighter background on hover */
+    box-shadow: 0 0 5px rgba(97, 175, 239, 0.3); /* Subtle glow */
+    }
+
+    .legend-item.hovered {
+    background-color: #434957; /* A distinct hover color */
+    /* border-left: 3px solid #61afef; */ /* Alternative: accent border */
+    }
+
+    .legend-item.hovered-by-legend {
+    background-color: #3e4451; /* Can be same as .legend-item:hover or .legend-item.hovered */
+    /* border: 1px dashed #7f848e; */ /* Example of a different visual cue */
+    }
+
+
+    .legend-item.selected {
+    background-color: #313640; /* Background for selected group in legend */
+    border: 1px solid #61afef; /* Highlight border to match network node selection */
+    box-shadow: 0 0 8px rgba(97, 175, 239, 0.5); /* More prominent glow for selected */
+    }
+
+    .legend-item.selected .legend-text {
+    color: #c8c8c8; /* Slightly brighter text for selected legend item */
+    font-weight: bold; /* Make text bold for selected group */
+    }
+
+    .legend-item:not([data-group-name]) {
+    cursor: default;
+    }
+
+    .legend-item:not([data-group-name]):hover {
+    background-color: transparent; /* No hover effect for non-group items */
+    box-shadow: none;
 }
 
     /* --- End of plot highlighting CSS --- */
@@ -264,6 +311,7 @@
       pointer-events: none !important;
       z-index: 100 !important;
       box-sizing: border-box !important;
+      opacity:0;
     }
   </style>
 </head>
