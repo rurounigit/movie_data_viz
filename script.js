@@ -53,6 +53,20 @@ let formattedOriginalPlotHTML = '<p class="info-placeholder">Plot summary will a
 let rawCurrentMoviePlot = '';
 
 
+// --- Helper function for HTML escaping ---
+function htmlEscape(str) {
+    if (!str) {
+        return '';
+    }
+    let res = String(str);
+    res = res.replace(/&/g, '&amp;');
+    res = res.replace(/</g, '&lt;');
+    res = res.replace(/>/g, '&gt;');
+    res = res.replace(/"/g, '&quot;');
+    res = res.replace(/'/g, '&#039;');
+    return res;
+}
+
 // Helper function to get contrasting text color
 function getTextColorForBackground(hexColor) {
   if (!hexColor) return '#e0e0e0';
@@ -73,7 +87,7 @@ function createTooltipElement(text, backgroundColor) {
   tooltipContent.style.padding = '10px';
   tooltipContent.style.borderRadius = '8px';
   tooltipContent.style.whiteSpace = 'pre-wrap';
-  tooltipContent.innerText = text || '';
+  tooltipContent.innerText = text || ''; // innerText will automatically handle basic text escaping
   return tooltipContent;
 }
 
@@ -158,12 +172,12 @@ function processAllDataFromYaml() {
         if (movie.character_list) {
             movie.character_list.forEach(character => {
                 const globalId = globalNodeIdCounter++;
-                const characterKey = `${movieTitle}_${character.name}`;
+                const characterKey = `${movieTitle}_${character.name}`; // Character.name is used for display and internal mapping
                 characterNameToGlobalIdMap[characterKey] = globalId;
 
                 globallyUniqueNodesMasterList.push({
                     id: globalId,
-                    label: character.name, // This is the character.name
+                    label: character.name, // This is the character.name from YAML, e.g. "Taki Tachibana (voice)"
                     actor_name: character.actor_name || 'Unknown Actor',
                     rawGroup: character.group || 'Unknown',
                     tooltipTextData: `${character.name || 'Unknown Character'}\n(Played by: ${character.actor_name || 'Unknown Actor'})\n\n${character.description || 'No description available.'}`,
@@ -191,7 +205,7 @@ function processAllDataFromYaml() {
                         rawStrength: rel.strength || 1,
                         tooltipTextData: `${rel.type || 'Relationship'}: ${rel.source} & ${rel.target}\n\n${rel.description || 'No specific details.'}`,
                         rawBaseColor: sentimentColors[rel.sentiment] || sentimentColors.neutral,
-                        rawArrows: { to: { enabled: false } }, // Directed field removed, so always false for rendering.
+                        rawArrows: { to: { enabled: false } },
                         rawSentiment: rel.sentiment || 'neutral',
                         movieTitle: movieTitle,
                     });
@@ -260,7 +274,7 @@ function updateLegend() {
     const legendContainer = document.getElementById('legend');
     if (!legendContainer) return;
 
-    legendContainer.innerHTML = ''; // Clear previous content, including any placeholder
+    legendContainer.innerHTML = '';
 
     const groupsTitle = document.createElement('h3');
     groupsTitle.textContent = 'Character Groups';
@@ -301,7 +315,6 @@ function updateLegend() {
         });
     }
 
-
     const sentimentsTitle = document.createElement('h3');
     sentimentsTitle.style.marginTop = '15px';
     sentimentsTitle.textContent = 'Relationship Sentiments';
@@ -322,13 +335,11 @@ function updateLegend() {
         legendContainer.appendChild(placeholder);
     } else {
         const sortedSentimentKeys = sentimentOrder.filter(key => sentimentColors.hasOwnProperty(key) && currentSentimentsInView.has(key));
-        // Add any other sentiments present in data but not in predefined order
         currentSentimentsInView.forEach(sentimentName => {
             if (!sortedSentimentKeys.includes(sentimentName) && sentimentColors.hasOwnProperty(sentimentName)) {
                  sortedSentimentKeys.push(sentimentName);
             }
         });
-
 
         sortedSentimentKeys.forEach(sentimentName => {
             const color = sentimentColors[sentimentName];
@@ -383,7 +394,6 @@ function updateHoverInfoPanel(itemData, type) {
         }
     }
 
-
     if (type === 'node' && itemData) {
         titleElement.textContent = 'Character Details';
         panel.appendChild(titleElement);
@@ -391,7 +401,7 @@ function updateHoverInfoPanel(itemData, type) {
         addInfoItem(panel, 'Name:', itemData.label);
         addInfoItem(panel, 'Actor:', itemData.actor_name);
 
-        if (itemData.tmdb_person_id || itemData.label) { // Allow character image even if no TMDb ID
+        if (itemData.tmdb_person_id || itemData.label) {
             const imagePanelDiv = document.createElement('div');
             imagePanelDiv.style.display = 'flex';
             imagePanelDiv.style.justifyContent = 'space-around';
@@ -403,18 +413,17 @@ function updateHoverInfoPanel(itemData, type) {
 
             const actorImgElement = document.createElement('img');
             actorImgElement.alt = `Actor: ${itemData.actor_name || 'N/A'}`;
-            actorImgElement.className = 'info-panel-image'; // Class for common styles
-            // Specific styles that might differ or override class
+            actorImgElement.className = 'info-panel-image';
             actorImgElement.style.maxWidth = '80px';
             actorImgElement.style.maxHeight = '120px';
-            actorImgElement.style.display = 'none'; // Initially hidden
+            actorImgElement.style.display = 'none';
 
             const charImgElement = document.createElement('img');
             charImgElement.alt = `Character: ${itemData.label || 'N/A'}`;
-            charImgElement.className = 'info-panel-image'; // Class for common styles
+            charImgElement.className = 'info-panel-image';
             charImgElement.style.maxWidth = '80px';
             charImgElement.style.maxHeight = '120px';
-            charImgElement.style.display = 'none'; // Initially hidden
+            charImgElement.style.display = 'none';
 
             imagePanelDiv.appendChild(actorImgElement);
             imagePanelDiv.appendChild(charImgElement);
@@ -445,9 +454,8 @@ function updateHoverInfoPanel(itemData, type) {
                 }
             };
 
-            // Initialize attempts done flags
-            let actorAttemptDone = !itemData.tmdb_person_id; // Done if no ID to even try for actor
-            let charAttemptDone = !itemData.label; // Done if no label to try for character
+            let actorAttemptDone = !itemData.tmdb_person_id;
+            let charAttemptDone = !itemData.label;
 
             if (itemData.tmdb_person_id) {
                 const actorFilename = itemData.tmdb_person_id;
@@ -457,11 +465,11 @@ function updateHoverInfoPanel(itemData, type) {
                 });
             }
 
-            if (itemData.label) { // Character image attempt only needs label
+            if (itemData.label) {
                 let charFilename;
-                if (itemData.tmdb_person_id) { // Prefer ID-based char image if ID exists
+                if (itemData.tmdb_person_id) {
                     charFilename = `${itemData.tmdb_person_id}_char_${slugify(itemData.label)}_1`;
-                } else { // Fallback to name-only char image
+                } else {
                     charFilename = `${slugify(itemData.label)}_char_unknown_id_1`;
                 }
                 tryLoadImageWithExtensions(charImgElement, charFilename, COMMON_IMAGE_EXTENSIONS, (success) => {
@@ -471,7 +479,6 @@ function updateHoverInfoPanel(itemData, type) {
             }
 
             panel.appendChild(imagePanelDiv);
-            // Initial visibility check
             if (!actorAttemptDone || !charAttemptDone) {
                  imagePanelDiv.style.display = 'none';
             } else {
@@ -497,24 +504,21 @@ function updateHoverInfoPanel(itemData, type) {
         addInfoItem(panel, 'Sentiment:', itemData.sentiment ? (itemData.sentiment.charAt(0).toUpperCase() + itemData.sentiment.slice(1)) : "N/A");
         if (description) addInfoItem(panel, 'Description:', description, true);
 
-        // NEW: Relationship Image Display
         if (fromNode && fromNode.label && toNode && toNode.label) {
             const sourceName = fromNode.label;
             const targetName = toNode.label;
 
             const relImagePanelDiv = document.createElement('div');
             relImagePanelDiv.style.marginTop = '10px';
-            // relImagePanelDiv.style.textAlign = 'center'; // Not needed if image is block with auto margins
-            relImagePanelDiv.style.display = 'none'; // Initially hidden, shown if image loads
+            relImagePanelDiv.style.display = 'none';
 
             const relImgElement = document.createElement('img');
             relImgElement.alt = `Visual for relationship: ${sourceName} & ${targetName}`;
-            relImgElement.className = 'info-panel-image'; // For common styles like border-radius, background-color
-            // Override or set specific styles for relationship image
-            relImgElement.style.maxWidth = '90%'; // % of its container (relImagePanelDiv)
+            relImgElement.className = 'info-panel-image';
+            relImgElement.style.maxWidth = '90%';
             relImgElement.style.maxHeight = '150px';
-            relImgElement.style.display = 'none'; // Initially hidden, loader sets to 'block'
-            relImgElement.style.margin = '0 auto'; // Center if block and not full width
+            relImgElement.style.display = 'none';
+            relImgElement.style.margin = '0 auto';
 
             relImagePanelDiv.appendChild(relImgElement);
             panel.appendChild(relImagePanelDiv);
@@ -522,7 +526,6 @@ function updateHoverInfoPanel(itemData, type) {
             const slugSourceName = slugify(sourceName);
             const slugTargetName = slugify(targetName);
 
-            // Filenames to try (e.g., rel_char1_char2_1 and rel_char2_char1_1)
             const relFilenamePrefix1 = `rel_${slugSourceName}_${slugTargetName}_1`;
             const relFilenamePrefix2 = `rel_${slugTargetName}_${slugSourceName}_1`;
 
@@ -543,7 +546,7 @@ function updateHoverInfoPanel(itemData, type) {
 
             const loadImageCallback = (success) => {
                 if (success) {
-                    relImagePanelDiv.style.display = 'block'; // Show container if image loaded
+                    relImagePanelDiv.style.display = 'block';
                 }
             };
 
@@ -551,22 +554,18 @@ function updateHoverInfoPanel(itemData, type) {
                 if (success1) {
                     loadImageCallback(true);
                 } else {
-                    // If first prefix failed, try the second one
                     tryLoadImageWithExtensions(relImgElement, relFilenamePrefix2, COMMON_IMAGE_EXTENSIONS, (success2) => {
                         if (success2) {
                             loadImageCallback(true);
                         }
-                        // If both fail, relImagePanelDiv remains display: 'none'
                     });
                 }
             });
         }
-
     } else {
          panel.innerHTML = '<p class="info-placeholder">Hover over a character or relationship for details.</p>';
     }
 }
-
 
 function addInfoItem(panel, key, value, isBlockValue = false) {
     if (value === undefined || value === null || value === '') return;
@@ -623,13 +622,6 @@ function displayPlotInPanel(htmlContentForPlotArea) {
     contentDiv.innerHTML = htmlContentForPlotArea;
 }
 
-// Helper function to apply character name highlighting within a text string
-function highlightCharacterNameInText(text, characterName) {
-    const escapedName = escapeRegExp(characterName);
-    const regex = new RegExp(`\\b${escapedName}\\b`, 'g');
-    return text.replace(regex, match => `<span class="highlighted-character">${match}</span>`);
-}
-
 /**
  * Helper to split a line of text into sentences.
  * @param {string} line - A single line of text (no \n characters).
@@ -637,74 +629,201 @@ function highlightCharacterNameInText(text, characterName) {
  */
 function splitLineIntoSentences(line) {
     if (!line || !line.trim()) return [];
-    // Regex to find sentences: captures text ending in punctuation, or the last bit of text.
-    // It tries to include the punctuation and any trailing spaces with the sentence.
     const sentenceRegex = /[^.!?]+(?:[.!?](?=\s|$)|[.!?]$)?\s*|[^.!?\s]+(?:[.!?](?=\s|$)|[.!?]$)?/g;
     let matches = line.match(sentenceRegex);
     return matches ? matches.filter(s => s.trim() !== '') : [];
 }
 
+// --- PLOT HIGHLIGHTING LOGIC ---
 
-// Function to highlight character name and containing sentences in the plot
+// Helper: Parse character name for fuzzy matching
+function getCharacterNameParts(fullName) {
+    if (!fullName) return { fullName: '', cleanedFullName: '', firstName: '', lastName: '', allUniqueParts: [] };
+
+    const cleanedName = fullName.replace(/\s*\(.*?\)\s*$/, '').trim();
+    const parts = cleanedName.split(/\s+/).filter(p => p.length > 0);
+    let firstName = '';
+    let lastName = '';
+
+    if (parts.length === 1) {
+        firstName = parts[0];
+    } else if (parts.length > 1) {
+        firstName = parts[0];
+        lastName = parts[parts.length - 1];
+    }
+
+    // Collect initial parts, filter by minimum length (e.g., > 2), then convert to Set for uniqueness
+    let initialParts = [cleanedName, firstName, lastName].filter(p => p && p.length > 2); // Min length 3 for parts
+    let uniquePartsSet = new Set(initialParts);
+
+    // Add original full name if it's different and significant, then cleanedFullName
+    if (fullName !== cleanedName && fullName.length > 2) {
+        uniquePartsSet.add(fullName);
+    }
+    // Ensure cleanedName is present if significant
+    if (cleanedName.length > 2) {
+         uniquePartsSet.add(cleanedName);
+    }
+
+    // Convert Set back to array and sort by length descending
+    const allUniqueParts = Array.from(uniquePartsSet).sort((a,b) => b.length - a.length);
+
+    return {
+        fullName: fullName, // Original full name passed to the function
+        cleanedFullName: cleanedName,
+        firstName: firstName,
+        lastName: lastName,
+        allUniqueParts: allUniqueParts // Sorted array of unique, significant name parts
+    };
+}
+
+// Helper: Highlight specific name parts within a raw text string
+function highlightAllNamePartsInText(rawText, namePartRegexes) {
+    if (!rawText) return '';
+    if (!namePartRegexes || namePartRegexes.length === 0) return htmlEscape(rawText);
+
+    let matches = [];
+    namePartRegexes.forEach(regex => {
+        regex.lastIndex = 0;
+        let match;
+        while ((match = regex.exec(rawText)) !== null) {
+            matches.push({ start: match.index, end: regex.lastIndex, text: match[0] });
+        }
+    });
+
+    if (matches.length === 0) return htmlEscape(rawText);
+
+    matches.sort((a, b) => {
+        if (a.start !== b.start) return a.start - b.start;
+        return (b.end - b.start) - (a.end - a.start);
+    });
+
+    let nonOverlappingMatches = [];
+    let lastMatchEnd = -1;
+    for (const match of matches) {
+        if (match.start >= lastMatchEnd) {
+            nonOverlappingMatches.push(match);
+            lastMatchEnd = match.end;
+        }
+    }
+
+    let resultHtml = "";
+    let currentIndex = 0;
+    nonOverlappingMatches.forEach(match => {
+        if (match.start > currentIndex) {
+            resultHtml += htmlEscape(rawText.substring(currentIndex, match.start));
+        }
+        resultHtml += `<span class="highlighted-character">${htmlEscape(match.text)}</span>`;
+        currentIndex = match.end;
+    });
+
+    if (currentIndex < rawText.length) {
+        resultHtml += htmlEscape(rawText.substring(currentIndex));
+    }
+
+    return resultHtml;
+}
+
+// Main function to highlight character name and context in plot
 function highlightCharacterInPlot(characterName) {
-    if (!rawCurrentMoviePlot || !characterName) {
-        displayPlotInPanel(formattedOriginalPlotHTML); // Use pre-formatted HTML
+    if (!rawCurrentMoviePlot) {
+        displayPlotInPanel(formattedOriginalPlotHTML);
         return;
     }
+    if (!characterName) { // If characterName is null/empty, show original plot
+        displayPlotInPanel(formattedOriginalPlotHTML);
+        return;
+    }
+
+    const nameInfo = getCharacterNameParts(characterName);
+    const sentenceMatchTerms = nameInfo.allUniqueParts;
+
+    if (sentenceMatchTerms.length === 0) {
+        displayPlotInPanel(formattedOriginalPlotHTML);
+        return;
+    }
+
+    const sentenceMatchRegexes = sentenceMatchTerms.map(term => new RegExp(`\\b${escapeRegExp(term)}\\b`, 'gi'));
+    const namePartHighlightRegexes = sentenceMatchTerms.map(term => new RegExp(`\\b${escapeRegExp(term)}\\b`, 'gi'));
 
     let finalHighlightedHtml = "";
     const lines = rawCurrentMoviePlot.split('\n');
 
     lines.forEach((line, lineIndex) => {
         if (lineIndex > 0) {
-            finalHighlightedHtml += "<br>"; // Add <br> for newlines between original lines
+            finalHighlightedHtml += "<br>";
         }
-
         if (!line.trim()) {
             return;
         }
 
-        const sentences = splitLineIntoSentences(line);
+        const sentencesInLine = splitLineIntoSentences(line);
 
-        if (!sentences || sentences.length === 0) {
-            let htmlEscapedLine = line
-                .replace(/&/g, "&")
-                .replace(/</g, "<")
-                .replace(/>/g, ">");
-            let lineWithCharHighlight = highlightCharacterNameInText(htmlEscapedLine, characterName);
-
-            const checkRegex = new RegExp(`\\b${escapeRegExp(characterName)}\\b`);
-            if (checkRegex.test(line)) {
-                finalHighlightedHtml += `<span class="sentence-highlight">${lineWithCharHighlight}</span>`;
+        if (!sentencesInLine || sentencesInLine.length === 0) { // Fallback: process the whole line
+            let isMatchForLine = false;
+            for (const regex of sentenceMatchRegexes) {
+                regex.lastIndex = 0;
+                if (regex.test(line)) {
+                    isMatchForLine = true;
+                    break;
+                }
+            }
+            const processedLineHtml = highlightAllNamePartsInText(line, namePartHighlightRegexes);
+            if (isMatchForLine) {
+                finalHighlightedHtml += `<span class="sentence-highlight-match">${processedLineHtml}</span>`;
             } else {
-                finalHighlightedHtml += lineWithCharHighlight;
+                // Line is not a match, so fade it
+                finalHighlightedHtml += `<span class="sentence-faded">${processedLineHtml}</span>`;
             }
             return;
         }
 
-        sentences.forEach((sentence) => {
-            if (!sentence.trim()) return;
+        // Store info about each sentence in the current line
+        let sentenceInfos = sentencesInLine.map(sText => {
+            let matchFound = false;
+            for (const regex of sentenceMatchRegexes) {
+                regex.lastIndex = 0;
+                if (regex.test(sText)) {
+                    matchFound = true;
+                    break;
+                }
+            }
+            return { rawText: sText, isMatch: matchFound, highlightClass: null };
+        });
 
-            const checkRegex = new RegExp(`\\b${escapeRegExp(characterName)}\\b`);
-            const containsCharacter = checkRegex.test(sentence);
+        // Determine highlight classes (match, context)
+        // First, assign direct matches
+        sentenceInfos.forEach(info => {
+            if (info.isMatch) {
+                info.highlightClass = 'sentence-highlight-match';
+            }
+        });
 
-            let htmlEscapedSentence = sentence
-                .replace(/&/g, "&")
-                .replace(/</g, "<")
-                .replace(/>/g, ">");
+        // Second, assign context highlights, being careful not to override a direct match
+        for (let i = 0; i < sentenceInfos.length; i++) {
+            if (sentenceInfos[i].highlightClass === 'sentence-highlight-match') {
+                if (i > 0 && sentenceInfos[i-1].highlightClass === null) {
+                    sentenceInfos[i-1].highlightClass = 'sentence-highlight-context';
+                }
+                if (i < sentenceInfos.length - 1 && sentenceInfos[i+1].highlightClass === null) {
+                    sentenceInfos[i+1].highlightClass = 'sentence-highlight-context';
+                }
+            }
+        }
 
-            let sentenceWithCharHighlight = highlightCharacterNameInText(htmlEscapedSentence, characterName);
+        // Build HTML for the line
+        sentenceInfos.forEach(info => {
+            const processedSentenceHtml = highlightAllNamePartsInText(info.rawText, namePartHighlightRegexes);
 
-            if (containsCharacter) {
-                finalHighlightedHtml += `<span class="sentence-highlight">${sentenceWithCharHighlight}</span>`;
-            } else {
-                finalHighlightedHtml += sentenceWithCharHighlight;
+            if (info.highlightClass) { // It's a match or context
+                finalHighlightedHtml += `<span class="${info.highlightClass}">${processedSentenceHtml}</span>`;
+            } else { // Not a match, not context, so fade it
+                finalHighlightedHtml += `<span class="sentence-faded">${processedSentenceHtml}</span>`;
             }
         });
     });
     displayPlotInPanel(finalHighlightedHtml);
 }
-
 
 // Update the Vis.js network based on selected movie
 function updateNetworkForMovie(selectedMovieTitle) {
@@ -726,11 +845,8 @@ function updateNetworkForMovie(selectedMovieTitle) {
 
             if (selectedMovieData.plot_with_character_constraints_and_relations) {
                 rawCurrentMoviePlot = selectedMovieData.plot_with_character_constraints_and_relations;
-                formattedOriginalPlotHTML = rawCurrentMoviePlot
-                    .replace(/&/g, "&")
-                    .replace(/</g, "<")
-                    .replace(/>/g, ">")
-                    .replace(/\n/g, "<br>");
+                // Use htmlEscape for the raw plot, then replace newlines
+                formattedOriginalPlotHTML = htmlEscape(rawCurrentMoviePlot).replace(/\n/g, "<br>");
             } else {
                 rawCurrentMoviePlot = '';
                 formattedOriginalPlotHTML = '<p class="info-placeholder">Plot summary not available for this movie.</p>';
@@ -752,7 +868,7 @@ function updateNetworkForMovie(selectedMovieTitle) {
             formattedOriginalPlotHTML = '<p class="info-placeholder">Select a movie to see the plot summary.</p>';
         }
     }
-    displayPlotInPanel(formattedOriginalPlotHTML);
+    displayPlotInPanel(formattedOriginalPlotHTML); // Display initial plot (or placeholder)
 
     const nodeDegrees = {};
     currentNodesFromMaster.forEach(node => { nodeDegrees[node.id] = 0; });
@@ -769,7 +885,7 @@ function updateNetworkForMovie(selectedMovieTitle) {
         const dynamicNodeFontSize = calculateNodeFontSize(nodeDegrees[masterNode.id] || 0);
         return {
             id: masterNode.id,
-            label: masterNode.label,
+            label: masterNode.label, // This is the character.name from YAML
             group: group,
             actor_name: masterNode.actor_name,
             title: createTooltipElement(masterNode.tooltipTextData, baseColor),
@@ -926,7 +1042,6 @@ function updateNetworkForMovie(selectedMovieTitle) {
         if (network) network.fit();
     }
 
-
     updateLegend();
     updateHoverInfoPanel(null);
 }
@@ -1033,13 +1148,13 @@ function setupNetworkEventListeners() {
         const nodeData = allNodesDataSet.get(nodeId);
         if (nodeData) {
             updateHoverInfoPanel(nodeData, 'node');
-            highlightCharacterInPlot(nodeData.label);
+            highlightCharacterInPlot(nodeData.label); // nodeData.label is character.name from YAML
         }
     });
 
     network.on("blurNode", function (params) {
         updateHoverInfoPanel(null);
-        displayPlotInPanel(formattedOriginalPlotHTML);
+        displayPlotInPanel(formattedOriginalPlotHTML); // Revert to non-highlighted plot
     });
 
     network.on("hoverEdge", function (params) {

@@ -67,24 +67,22 @@
         min-width: 800px;
     }
 
-    /* UPDATED: Sidebar Column for Legend, Info Panel, and Plot Summary */
     .sidebar-column {
         display: flex;
-        flex-direction: column; /* Stack top row (legend/info) and plot panel vertically */
+        flex-direction: column;
         width: 600px;
-        height: 75vh; /* Match network height */
-        min-height: 550px; /* Match network min-height */
+        height: 75vh;
+        min-height: 550px;
         flex-shrink: 0;
-        gap: 10px; /* Gap between top-sidebar-row and plotSummaryPanel */
+        gap: 10px;
     }
 
-    /* NEW: Row container for Legend and Info Panel */
     .top-sidebar-row {
         display: flex;
         flex-direction: row;
         gap: 10px;
         width: 100%;
-        flex-shrink: 0; /* Prevent this row from shrinking */
+        flex-shrink: 0;
     }
 
     #legend, #hoverInfoPanel {
@@ -96,13 +94,12 @@
         color: #abb2bf;
         font-size: 0.9em;
         overflow-y: auto;
-        flex: 1; /* Each takes half of the top-sidebar-row width */
-        max-height: 35vh; /* Example max-height, adjust as needed or make it part of sidebar-column's flex distribution */
-                          /* Or remove max-height here if plotSummaryPanel's flex-grow is preferred to manage height */
+        flex: 1;
+        max-height: 35vh;
     }
 
 
-    #legend h3, #hoverInfoPanel h3 { /* Shared styling for panel titles */
+    #legend h3, #hoverInfoPanel h3 {
         margin-top: 0;
         margin-bottom: 10px;
         font-size: 1.1em;
@@ -150,49 +147,72 @@
         text-align: center;
         padding-top: 10px;
     }
+    .info-panel-image { /* For images in the hover info panel */
+        border-radius: 4px;
+        background-color: #21252b; /* Dark background for transparent PNGs */
+        object-fit: cover; /* Ensure image covers the area, might crop */
+    }
+    .info-images-container { /* Container for actor/char images */
+         /* styles already defined in JS, this is a placeholder if more CSS needed */
+    }
 
-    /* NEW: Plot Summary Panel Styling */
+
     #plotSummaryPanel {
         background-color: #2c313a;
-        padding: 10px; /* Padding for the panel itself */
+        padding: 10px;
         border-radius: 6px;
         border: 1px solid #21252b;
         box-shadow: 0 3px 10px rgba(0,0,0,0.2);
         color: #abb2bf;
         font-size: 0.9em;
-        overflow-y: auto; /* Allow plot summary to scroll if content is tall */
-        flex-grow: 1; /* Takes remaining vertical space in sidebar-column */
-        min-height: 0; /* Important for flex-grow in a flex column */
-        width: 100%; /* Span full width of sidebar-column */
+        overflow-y: auto;
+        flex-grow: 1;
+        min-height: 0;
+        width: 100%;
         box-sizing: border-box;
-        line-height: 1.5; /* Improved readability for plot text */
+        line-height: 1.5;
     }
-    /* Style for plot content area if needed, but panel padding might be enough */
     .plot-content-area {
-        /* If #plotSummaryPanel has padding, this might not need much */
+        /* padding as needed if #plotSummaryPanel padding isn't enough */
     }
 
-    /* UPDATED: CSS for highlighting character names in plot */
-    /* This class will now only bold/color the character name *within* a highlighted sentence, without causing shifting. */
+    /* --- UPDATED/NEW CSS for plot highlighting --- */
+    /* For the specific character name parts that are matched */
     .highlighted-character {
-        background-color: transparent; /* Ensure no background here, it's for .sentence-highlight */
-        color: #ffffff; /* A slightly brighter text color for the character name */
+        background-color: transparent; /* No background directly on the name span */
+        color: #ffffff; /* Brighter text color for the name part itself */
+        opacity: 1 !important; /* Ensure character name is fully opaque even if parent is faded */
 
-        /* Removed padding, border-radius, box-decoration-break from previous version */
     }
 
-    /* UPDATED: CSS for highlighting the entire sentence */
-    /* REMOVED VERTICAL PADDING to prevent line shifting! */
-    #plotSummaryPanel .sentence-highlight { /* Added #plotSummaryPanel to make it more specific */
-        background-color: rgba(97, 175, 239, 0.15); /* A lighter, more subtle highlight for the whole sentence */
-        color: #ffffff; /* Inherit the main text color of the plot panel */
-        border-radius: 0px;
-        padding: 0 0px; /* ONLY horizontal padding to avoid vertical shifting */
-        /* The line-height property of the parent (.plot-content-area or #plotSummaryPanel) should control the overall line spacing. */
-        /* box-decoration-break: clone; /* Ensures background/padding behaves well across line breaks */
-        /* -webkit-box-decoration-break: clone; */
-        /* display: inline; /* Keeps the highlight inline so it flows with the text */
+    /* For sentences that directly match the character name (full or partial) */
+    #plotSummaryPanel .sentence-highlight-match {
+        background-color: rgba(97, 175, 239, 0.15); /* Light blueish highlight */
+        color: #c4c4c4; /* Optional: if you want text in matched sentences to be white */
+        padding: 0 0px; /* Minimal horizontal padding, NO vertical padding */
+        box-decoration-break: clone; /* Helps background span across line breaks if sentence is long */
+        -webkit-box-decoration-break: clone;
     }
+
+    /* For sentences before/after a matched sentence (context) */
+    #plotSummaryPanel .sentence-highlight-context {
+       /*  background-color: rgba(120, 120, 120, 0.222); /* Subtle greyish highlight */
+        color: inherit; /* Inherit default plot text color */
+        padding: 0 0px; /* Minimal horizontal padding, NO vertical padding */
+
+        box-decoration-break: clone;
+        -webkit-box-decoration-break: clone;
+    }
+
+
+    /* NEW: For sentences that are not highlighted and should be faded */
+    #plotSummaryPanel .sentence-faded {
+        opacity: 0.5; /* Adjust opacity as desired */
+        /* color: #7f848e; */ /* Alternative: change color to a lighter grey */
+        transition: opacity 0.5s ease, color 0.5s ease; /* Optional: for smooth transitions */
+}
+
+    /* --- End of plot highlighting CSS --- */
 
 
     /* Navigation Buttons CSS */
@@ -231,13 +251,13 @@
     /* CSS FOR STYLING VIS.JS TOOLTIPS (when title is an HTML element) */
     div.vis-network div.vis-tooltip {
       position: absolute !important;
-      padding: 0 !important; /* Remove padding as custom element has its own */
+      padding: 0 !important;
       font-family: 'Roboto', sans-serif !important;
       font-size: 12px !important;
       line-height: 1.5 !important;
-      background-color: transparent !important; /* Make default tooltip background transparent */
-      border: 2px solid #545862 !important; /* Border for the tooltip container */
-      border-radius: 10px !important; /* Match custom element's border-radius */
+      background-color: transparent !important;
+      border: 2px solid #545862 !important;
+      border-radius: 10px !important;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
       max-width: 350px !important;
       text-align: left !important;
@@ -250,7 +270,7 @@
 <body>
   <div class="content-wrapper">
     <h1>Movie Character Relationships</h1>
-    <p class="description">Hover over nodes (characters) for details and over edges (lines) for relationship specifics. Hover over characters in the network to highlight them in the plot summary.</p>
+    <p class="description">Hover over nodes (characters) for details and over edges (lines) for relationship specifics. Hover over characters in the network to highlight them and their context in the plot summary.</p>
 
     <div class="controls">
       <label for="movieSelector">Select Movie:</label>
@@ -262,9 +282,7 @@
     <div class="network-area">
         <div id="mynetwork"></div>
 
-        <!-- UPDATED: Sidebar Column -->
         <div class="sidebar-column">
-            <!-- NEW: Top row for legend and info panel -->
             <div class="top-sidebar-row">
                 <div id="legend">
                     <p class="info-placeholder">Legend loading...</p>
@@ -274,10 +292,8 @@
                 </div>
             </div>
 
-            <!-- NEW: Plot Summary Panel -->
             <div id="plotSummaryPanel">
-                <!-- Content (title and plot text) will be populated by JavaScript -->
-                <!-- Initial placeholder can be set by JS if needed, or rely on JS to always populate -->
+                <!-- Content will be populated by JavaScript -->
             </div>
         </div>
     </div>
