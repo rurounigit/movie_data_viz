@@ -2,37 +2,30 @@
 import * as config from './config.js';
 import * as utils from './utils.js';
 
-// NEW function to clear legend item styles
 export function clearLegendHighlights() {
     const legendContainer = document.getElementById('legend');
     if (!legendContainer) return;
-    const items = legendContainer.querySelectorAll('.legend-item[data-group-name]'); // Target only group items
+    const items = legendContainer.querySelectorAll('.legend-item[data-group-name]');
     items.forEach(item => {
         item.classList.remove('hovered', 'selected', 'hovered-by-legend');
     });
 }
 
-// NEW function to highlight a specific legend item
-export function highlightLegendItemGroup(groupName, styleType = 'hovered') { // styleType can be 'hovered' or 'selected'
+export function highlightLegendItemGroup(groupName, styleType = 'hovered') {
     const legendContainer = document.getElementById('legend');
     if (!legendContainer || !groupName) return;
 
-    // If selecting, clear all other selections and hovers first
     if (styleType === 'selected') {
         clearLegendHighlights();
-    } else { // If just hovering, clear other hovers but not selections
-        const hoveredItems = legendContainer.querySelectorAll('.legend-item.hovered, .legend-item.hovered-by-legend');
-        hoveredItems.forEach(item => {
-            if (!item.classList.contains('selected')) { // Don't remove hover if it's also selected
+    } else {
+        const itemsToClear = legendContainer.querySelectorAll('.legend-item.hovered, .legend-item.hovered-by-legend');
+        itemsToClear.forEach(item => {
+            if (item.dataset.groupName !== groupName && !item.classList.contains('selected')) {
                 item.classList.remove('hovered', 'hovered-by-legend');
             }
         });
     }
 
-    // Escape groupName for querySelector if it might contain special characters
-    // However, group names are usually simple. If not, utils.escapeRegExp might be too aggressive for CSS selectors.
-    // A simpler slugify or specific character replacement might be better if group names are complex.
-    // For now, assuming groupName is safe for attribute value selector.
     const itemToHighlight = legendContainer.querySelector(`.legend-item[data-group-name="${groupName}"]`);
     if (itemToHighlight) {
         itemToHighlight.classList.add(styleType);
@@ -68,13 +61,13 @@ export function updateLegend(allNodesDataSet, allEdgesDataSet, onLegendItemClick
 
         if (sortedGroupNames.length === 0 && currentGroupsInView.size > 0) {
              const placeholder = document.createElement('p'); placeholder.className = 'info-placeholder';
-             placeholder.textContent = 'Groups present but colors not generated.'; legendContainer.appendChild(placeholder);
+             placeholder.textContent = 'Groups present but no colors generated.'; legendContainer.appendChild(placeholder);
         }
 
         sortedGroupNames.forEach(gName => {
-            if (!gName || gName === 'Unknown' && !currentGroupsInView.has('Unknown')) return; // Skip if not in view
+            if (!gName || (gName === 'Unknown' && !currentGroupsInView.has('Unknown'))) return;
 
-            const color = generatedColors[gName] || '#bdbdbd'; // Fallback for unknown if somehow not cached
+            const color = generatedColors[gName] || '#bdbdbd';
             const item = document.createElement('div');
             item.className = 'legend-item';
             item.setAttribute('data-group-name', gName);
@@ -98,7 +91,7 @@ export function updateLegend(allNodesDataSet, allEdgesDataSet, onLegendItemClick
             if (onLegendItemHoverCallback) {
                 item.addEventListener('mouseenter', () => onLegendItemHoverCallback(gName, true));
             }
-            if (onLegendItemBlurCallback) { // Changed to use a dedicated blur callback
+            if (onLegendItemBlurCallback) {
                  item.addEventListener('mouseleave', () => onLegendItemBlurCallback(gName));
             }
         });
@@ -128,7 +121,6 @@ export function updateLegend(allNodesDataSet, allEdgesDataSet, onLegendItemClick
         });
     }
 }
-
 
 export function addInfoItem(panel, key, value, isBlockValue = false) {
     if (value === undefined || value === null || String(value).trim() === '') return;
@@ -222,14 +214,32 @@ export function updateHoverInfoPanel(itemData, type, allNodesDataSet) {
 
 export function displayPlotInPanel(htmlContentForPlotArea, isHighlightingActive = false) {
     const plotPanel = document.getElementById('plotSummaryPanel');
-    if (!plotPanel) { console.error("Plot summary panel not found."); return; }
-    let titleElement = plotPanel.querySelector('h3.plot-title');
-    if (!titleElement) {
-        titleElement = document.createElement('h3'); titleElement.className = 'plot-title'; titleElement.textContent = 'Plot Summary';
-        titleElement.style.cssText = 'margin-top:0; margin-bottom:10px; font-size:1.1em; color:#dedede; border-bottom:1px solid #434343; padding-bottom:5px;';
-        plotPanel.insertBefore(titleElement, plotPanel.firstChild);
+    if (!plotPanel) {
+        console.error("Plot summary panel not found.");
+        return;
     }
-    let contentDiv = plotPanel.querySelector('.plot-content-area');
-    if (!contentDiv) { contentDiv = document.createElement('div'); contentDiv.className = 'plot-content-area'; plotPanel.appendChild(contentDiv); }
+
+    // Clear previous content of the plotPanel entirely first
+    plotPanel.innerHTML = ''; // **** THIS IS THE CORRECTED PART ****
+
+    // Now, add the title
+    let titleElement = document.createElement('h3');
+    titleElement.className = 'plot-title';
+    titleElement.textContent = 'Plot Summary';
+    titleElement.style.cssText = 'margin-top:0; margin-bottom:10px; font-size:1.1em; color:#dedede; border-bottom:1px solid #434343; padding-bottom:5px;';
+    plotPanel.appendChild(titleElement);
+
+    // Now, add the content area and the plot
+    let contentDiv = document.createElement('div');
+    contentDiv.className = 'plot-content-area';
     contentDiv.innerHTML = htmlContentForPlotArea;
+    plotPanel.appendChild(contentDiv);
+
+    // Animation hook (if re-enabled)
+    // if (isHighlightingActive) {
+    //     requestAnimationFrame(() => {
+    //         const elementsToAnimate = contentDiv.querySelectorAll('.sentence-faded, .sentence-highlight-match, .sentence-highlight-context');
+    //         elementsToAnimate.forEach(el => el.classList.add('applied'));
+    //     });
+    // }
 }
